@@ -1,4 +1,4 @@
-package com.SparkLab.study;
+package com.sparkLab.study;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.SparkLab.study;
+package com.sparkLab.study;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
