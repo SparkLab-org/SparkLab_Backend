@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Feedback extends BaseTimeEntity{
+public class Feedback extends BaseTime{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

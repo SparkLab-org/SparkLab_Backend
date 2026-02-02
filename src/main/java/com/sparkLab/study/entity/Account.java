@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Account extends BaseTimeEntity {
+public class Account extends BaseTime {
 
     @Id
     @Column(name="accountId")

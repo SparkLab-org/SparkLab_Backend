@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AssignmentSubmission extends BaseTimeEntity{
+public class AssignmentSubmission extends BaseTime{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

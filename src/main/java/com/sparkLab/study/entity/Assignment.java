@@ -9,7 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Assignment extends BaseTimeEntity{
+public class Assignment extends BaseTime{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

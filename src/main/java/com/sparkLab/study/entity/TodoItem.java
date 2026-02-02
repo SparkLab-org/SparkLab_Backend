@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TodoItem extends BaseTimeEntity{
+public class TodoItem extends BaseTime{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,4 +41,8 @@ public class TodoItem extends BaseTimeEntity{
 
     @OneToMany(mappedBy = "todoItem", cascade = CascadeType.ALL)
     private List<Feedback> feedbacks;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plannerId", nullable = false)
+    private Planner planner;
 }
