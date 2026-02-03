@@ -34,6 +34,7 @@ public class Account extends BaseTime {
     private AccountStatus accountStatus;
 
     @Column(name = "tokenVersion", nullable = false)
+    @Builder.Default
     private Long tokenVersion = 0L;
 
     @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL)

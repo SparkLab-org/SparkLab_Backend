@@ -1,5 +1,6 @@
 package com.sparkLab.study.dto.todo;
 
+import com.sparkLab.study.constant.Subject;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ public class TodoItemResponse {
     private Long plannerId;
     private LocalDate targetDate;
     private String title;
-    private String subject;
+    private Subject subject;
     private String type;
     private Boolean isFixed;
     private String status;
