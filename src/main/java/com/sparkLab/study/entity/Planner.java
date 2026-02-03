@@ -2,18 +2,14 @@ package com.sparkLab.study.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import java.time.LocalDate;
-
 import java.util.ArrayList;
 import java.util.List;
-
 
 @Entity
 @Table(
         name = "planners",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"menteeId", "planDate"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"mentee_id", "plan_date"})
 )
 @Getter
 @Setter
@@ -34,12 +30,11 @@ public class Planner extends BaseTime{
     private LocalDate planDate;
 
     @Column(columnDefinition = "TEXT")
-    private String comment;
+    private String comment; //자기 평가
 
     @OneToMany(mappedBy = "planner", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<TodoItem> todoItems = new ArrayList<>();
-
 
 
 }

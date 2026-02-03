@@ -3,7 +3,6 @@ package com.sparkLab.study.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "feedbacks")
@@ -17,6 +16,17 @@ public class Feedback extends BaseTime{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long feedbackId;
 
+    private LocalDateTime targetDate;
+    private Boolean isImportant;
+    private String summary;
+
+    @Lob
+    private String content;
+
+    @ManyToOne
+    @JoinColumn(name = "todoItemId")
+    private TodoItem todoItem;
+
     @ManyToOne
     @JoinColumn(name = "mentorId")
     private Mentor mentor;
@@ -24,17 +34,4 @@ public class Feedback extends BaseTime{
     @ManyToOne
     @JoinColumn(name = "menteeId")
     private Mentee mentee;
-
-    private LocalDateTime targetDate;
-    private String subject;
-    private Boolean isImportant;
-    private String summary;
-
-    @Lob
-    private String content;
-
-
-    @ManyToOne
-    @JoinColumn(name = "todoItemId")
-    private TodoItem todoItem;
 }

@@ -1,5 +1,6 @@
 package com.sparkLab.study.entity;
 
+import com.sparkLab.study.constant.Subject;
 import jakarta.persistence.*;
 import lombok.Getter;
 import java.util.List;
@@ -17,17 +18,19 @@ public class Mentor {
     @JoinColumn(name = "accountId")
     private Account account;
 
-    @Column(name = "expertise", length = 255)
-    private String expertise;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Subject subject;
 
-    @Column(name = "careerYears")
-    private Integer careerYears;
+    // 멘토는 멘티를 거쳐서
+    @OneToMany(mappedBy = "mentorId", fetch = FetchType.LAZY)
+    private List<Mentee> mentees;
 
-    @Column(name = "availableTimes", length = 255)
-    private String availableTimes;
+    @OneToMany(mappedBy = "feedbackId", fetch = FetchType.LAZY)
+    private List<Feedback> feedback;
 
-    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL)
-    private List<TodoItem> assignedTodos;
+    @OneToMany(mappedBy = "todoItemId", fetch = FetchType.LAZY)
+    private List<TodoItem> todoItem;
 
 
 }
