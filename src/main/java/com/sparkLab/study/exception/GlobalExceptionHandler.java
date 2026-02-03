@@ -1,0 +1,46 @@
+package com.sparkLab.study.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MentorFixedTodoException.class)
+    public ResponseEntity<Map<String, String>> handleMentorFixedTodo(MentorFixedTodoException e) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(ResourceNotFoundException e) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", message);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", e.getMessage());
+        return ResponseEntity.badRequest().body(body);
+    }
+}

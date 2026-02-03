@@ -1,10 +1,12 @@
 package com.sparkLab.study.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import java.util.List;
 
 @Entity
 @Table(name = "mentors")
+@Getter
 public class Mentor {
 
     @Id
