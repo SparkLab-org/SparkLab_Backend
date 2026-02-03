@@ -2,12 +2,10 @@ package com.sparkLab.study.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "assignment_submissions")
-@Getter @Setter
+@Table(name = "assignmentSubmissions")
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

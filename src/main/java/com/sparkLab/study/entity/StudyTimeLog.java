@@ -1,48 +1,49 @@
 package com.sparkLab.study.entity;
 
+import com.sparkLab.study.constant.TimeLogStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+
 @Entity
-@Table(name = "studyTimeLogs")
+@Table(
+        name = "studyTimelog",
+        indexes = {
+                @Index(name = "idx_timelog_user_start", columnList = "user_id, start_at"),
+                @Index(name = "idx_timelog_user_stop", columnList = "user_id, stop_at"),
+                @Index(name = "idx_timelog_routine", columnList = "routine_id")
+        }
+)
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class StudyTimeLog {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class StudyTimeLog extends BaseTime{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long StudyTimeLogId;
+    @Column(name = "timelogId")
+    private Long timelogId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "todoItem", nullable = false)
-    private TodoItem todoItem;
+    @JoinColumn(name = "routineId")
+    private Routine routineId;   // nullable
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menteeId", nullable = false)
-    private Mentee mentee;
+    @JoinColumn(name = "todoItemId")
+    private TodoItem todoItem;   // nullable
 
+
+    @Column(name = "startAt", nullable = false)
+    private LocalDateTime startAt;
+
+    @Column(name = "stopAt")
+    private LocalDateTime stopAt;
+
+    @Column(name = "duration_sec")
+    private Long durationSec;  // stop 시 계산
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Integer studiedMinutes;
+    private TimeLogStatus status = TimeLogStatus.RUNNING;
 
-    @Column(nullable = false)
-    private LocalDateTime recordedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (recordedAt == null) {
-            recordedAt = LocalDateTime.now();
-        }
-    }
-
-    public String getFormattedStudyTime() {
-        int hours = studiedMinutes / 60;
-        int minutes = studiedMinutes % 60;
-        return hours > 0
-                ? String.format("%d시간 %d분", hours, minutes)
-                : String.format("%d분", minutes);
-    }
 }

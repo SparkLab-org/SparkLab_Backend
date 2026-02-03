@@ -1,5 +1,6 @@
 package com.sparkLab.study.entity;
 
+import com.sparkLab.study.constant.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -30,20 +31,11 @@ public class Account extends BaseTime {
 
     @Column(name = "accountDeleted",
             nullable = false)
-    private String deletedYn;
+    private AccountStatus accountStatus;
 
     @Column(name = "tokenVersion", nullable = false)
     private Long tokenVersion = 0L;
 
     @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL)
     private List<Notification> notifications;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.deletedYn == null)
-            this.deletedYn = "N";
-
-        if (this.role == null)
-            this.role = "USER";
-    }
 }
