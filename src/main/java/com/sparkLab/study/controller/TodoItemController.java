@@ -97,4 +97,9 @@ public class TodoItemController {
         todoItemService.deleteFixed(todoItemId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/pingtest")
+    public ResponseEntity<String> pingTest() {
+        return ResponseEntity.ok("pingtest");
+    }
 }
