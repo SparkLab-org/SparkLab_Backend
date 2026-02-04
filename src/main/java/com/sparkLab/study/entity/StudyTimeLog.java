@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 @Table(
         name = "studyTimelog",
         indexes = {
-                @Index(name = "idx_timelog_user_start", columnList = "user_id, start_at"),
-                @Index(name = "idx_timelog_user_stop", columnList = "user_id, stop_at"),
+                @Index(name = "idx_timelog_todoItemId", columnList = "todoItemId"),
                 @Index(name = "idx_timelog_routine", columnList = "routine_id")
         }
 )
