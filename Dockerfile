@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Gradle 캐시 활용
 COPY build.gradle settings.gradle ./
+COPY gradlew .
 COPY gradle gradle
 RUN chmod +x gradlew && ./gradlew build -x test --no-daemon || true
 
