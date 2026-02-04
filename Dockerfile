@@ -1,17 +1,17 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Build Stage
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
-COPY gradlew .
-COPY gradle gradle
+# Gradle 캐시 활용
 COPY build.gradle settings.gradle ./
+COPY gradle gradle
+RUN chmod +x gradlew && ./gradlew build -x test --no-daemon || true
+
 COPY src src
+RUN ./gradlew clean build -x test --no-daemon
 
-RUN chmod +x gradlew
-RUN ./gradlew clean build -x test
-
-FROM eclipse-temurin:17-jre-alpine
+# Run Stage
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
 COPY --from=build /app/build/libs/*.jar app.jar
-
 ENTRYPOINT ["java", "-jar", "app.jar"]
