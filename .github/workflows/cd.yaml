@@ -30,6 +30,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner | lower }}/app:latest
-            ghcr.io/${{ github.repository_owner | lower }}/app:${{ github.sha }}
+            ghcr.io/sparklab-org/app:latest
+            ghcr.io/sparklab-org/app:${{ github.sha }}
+        
 
