@@ -2,10 +2,12 @@ package com.sparkLab.study.entity;
 
 import com.sparkLab.study.constant.ActiveLevel;
 import jakarta.persistence.*;
+import lombok.Getter;
 import java.util.List;
 
 @Entity
 @Table(name = "mentees")
+@Getter
 public class Mentee {
 
     @Id
