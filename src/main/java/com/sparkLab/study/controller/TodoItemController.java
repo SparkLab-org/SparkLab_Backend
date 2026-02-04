@@ -102,4 +102,9 @@ public class TodoItemController {
         todoItemService.deleteByMentor(mentorId, menteeId, todoItemId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/pingtest")
+    public ResponseEntity<String> pingTest() {
+        return ResponseEntity.ok("pingtest");
+    }
 }
