@@ -22,7 +22,8 @@ public class SecurityConfig {
                                 "/pingtest",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/v3/api-docs"
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
