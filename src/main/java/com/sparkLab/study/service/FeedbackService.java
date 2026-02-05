@@ -45,7 +45,7 @@ public class FeedbackService {
                 .todoItem(todoItem)
                 .targetDate(request.getTargetDate())
                 .isImportant(request.getIsImportant())
-                .summary(request.getSummary())
+                .summary(resolveSummary(request.getIsImportant(), request.getSummary()))
                 .content(request.getContent())
                 .build();
         return toResponse(feedbackRepository.save(feedback));
@@ -83,6 +83,9 @@ public class FeedbackService {
         if (request.getIsImportant() != null) feedback.setIsImportant(request.getIsImportant());
         if (request.getSummary() != null) feedback.setSummary(request.getSummary());
         if (request.getContent() != null) feedback.setContent(request.getContent());
+        if (Boolean.TRUE.equals(feedback.getIsImportant())) {
+            feedback.setSummary(resolveSummary(true, feedback.getSummary()));
+        }
         return toResponse(feedbackRepository.save(feedback));
     }
 
@@ -111,5 +114,12 @@ public class FeedbackService {
                 .createTime(feedback.getCreateTime())
                 .updateTime(feedback.getUpdateTime())
                 .build();
+    }
+
+    private String resolveSummary(Boolean isImportant, String summary) {
+        if (Boolean.TRUE.equals(isImportant)) {
+            return "중요";
+        }
+        return summary;
     }
 }
