@@ -6,7 +6,6 @@ import com.sparkLab.study.entity.AssignmentSubmission;
 import com.sparkLab.study.exception.ResourceNotFoundException;
 import com.sparkLab.study.repository.AssignmentRepository;
 import com.sparkLab.study.repository.AssignmentSubmissionRepository;
-import com.sparkLab.study.repository.MenteeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,17 +39,19 @@ public class AssignmentSubmissionService {
 
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
-    private final MenteeRepository menteeRepository;
 
     @Value("${app.upload-dir:uploads}")
     private String uploadDir;
 
     @Transactional
-    public AssignmentSubmissionResponse submit(Long menteeId, Long assignmentId, MultipartFile file) {
+    public AssignmentSubmissionResponse submit(Long assignmentId, MultipartFile file) {
         validateFile(file);
 
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("과제를 찾을 수 없습니다. assignmentId=" + assignmentId));
+        if (assignment.getTodoItem() == null || assignment.getTodoItem().getMentee() == null) {
+            throw new ResourceNotFoundException("과제에 연결된 멘티가 없습니다. assignmentId=" + assignmentId);
+        }
         String extension = getExtension(file.getOriginalFilename());
         String filename = UUID.randomUUID() + (extension.isEmpty() ? "" : "." + extension);
         Path uploadPath = Paths.get(uploadDir, "assignments", String.valueOf(assignmentId));
@@ -66,6 +67,7 @@ public class AssignmentSubmissionService {
         String imageUrl = "/uploads/assignments/" + assignmentId + "/" + filename;
         AssignmentSubmission submission = AssignmentSubmission.builder()
                 .assignment(assignment)
+                .mentee(assignment.getTodoItem().getMentee())
                 .imageUrl(imageUrl)
                 .status("SUBMITTED")
                 .build();
