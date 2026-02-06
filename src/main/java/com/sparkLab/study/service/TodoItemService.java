@@ -23,6 +23,7 @@ public class TodoItemService {
 
     private final TodoItemRepository todoItemRepository;
     private final PlannerRepository plannerRepository;
+    private final NotificationService notificationService;
 
     // 할일 생성
     @Transactional
@@ -119,6 +120,7 @@ public class TodoItemService {
                 .plannedMinutes(request.getPlannedMinutes())
                 .build();
         todo = todoItemRepository.save(todo);
+        notificationService.notifyNewTodo(todo);
         return toResponse(todo);
     }
 
