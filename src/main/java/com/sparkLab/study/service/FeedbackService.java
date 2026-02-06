@@ -45,7 +45,7 @@ public class FeedbackService {
                 .todoItem(todoItem)
                 .targetDate(request.getTargetDate())
                 .isImportant(request.getIsImportant())
-                .summary(request.getSummary())
+                .summary(resolveSummary(request.getIsImportant(), request.getContent(), request.getSummary()))
                 .content(request.getContent())
                 .build();
         return toResponse(feedbackRepository.save(feedback));
@@ -81,8 +81,12 @@ public class FeedbackService {
         }
         if (request.getTargetDate() != null) feedback.setTargetDate(request.getTargetDate());
         if (request.getIsImportant() != null) feedback.setIsImportant(request.getIsImportant());
-        if (request.getSummary() != null) feedback.setSummary(request.getSummary());
         if (request.getContent() != null) feedback.setContent(request.getContent());
+        feedback.setSummary(resolveSummary(
+                feedback.getIsImportant(),
+                feedback.getContent(),
+                request.getSummary() != null ? request.getSummary() : feedback.getSummary()
+        ));
         return toResponse(feedbackRepository.save(feedback));
     }
 
@@ -111,5 +115,31 @@ public class FeedbackService {
                 .createTime(feedback.getCreateTime())
                 .updateTime(feedback.getUpdateTime())
                 .build();
+    }
+
+    private String resolveSummary(Boolean isImportant, String content, String fallbackSummary) {
+        if (Boolean.TRUE.equals(isImportant)) {
+            return "중요";
+        }
+        String autoSummary = extractSummaryFromContent(content);
+        if (autoSummary == null || autoSummary.isBlank()) {
+            return fallbackSummary;
+        }
+        return autoSummary;
+    }
+
+    private String extractSummaryFromContent(String content) {
+        if (content == null) {
+            return null;
+        }
+        String normalized = content.trim();
+        if (normalized.isEmpty()) {
+            return "";
+        }
+        String[] sentences = normalized.split("(?<=[.!?])\\s+");
+        if (sentences.length == 1) {
+            return sentences[0];
+        }
+        return sentences[0] + " " + sentences[1];
     }
 }
