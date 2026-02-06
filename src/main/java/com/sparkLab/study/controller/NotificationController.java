@@ -18,7 +18,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @PreAuthorize("hasRole('MENTEE')")
+    @PreAuthorize("hasAnyRole('MENTEE','MENTOR')")
     @GetMapping
     public List<NotificationResponse> list(@RequestParam Long accountId) {
         return notificationService.listByAccount(accountId);
