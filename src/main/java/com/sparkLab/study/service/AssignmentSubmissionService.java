@@ -34,7 +34,8 @@ public class AssignmentSubmissionService {
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
             "jpg",
             "jpeg",
-            "png"
+            "png",
+            "gif"
     );
 
     private final AssignmentRepository assignmentRepository;

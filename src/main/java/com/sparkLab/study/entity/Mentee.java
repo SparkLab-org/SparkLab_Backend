@@ -3,11 +3,13 @@ package com.sparkLab.study.entity;
 import com.sparkLab.study.constant.ActiveLevel;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import java.util.List;
 
 @Entity
 @Table(name = "mentees")
 @Getter
+@Setter
 public class Mentee {
 
     @Id
@@ -37,4 +39,11 @@ public class Mentee {
 
     @OneToMany(mappedBy = "mentee", cascade = CascadeType.ALL)
     private List<Feedback> feedbacks;
+
+    @PrePersist
+    private void applyDefaultActiveLevel() {
+        if (activeLevel == null) {
+            activeLevel = ActiveLevel.NORMAL;
+        }
+    }
 }
