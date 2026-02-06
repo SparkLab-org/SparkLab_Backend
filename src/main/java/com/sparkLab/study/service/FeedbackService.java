@@ -27,6 +27,7 @@ public class FeedbackService {
     private final MentorRepository mentorRepository;
     private final MenteeRepository menteeRepository;
     private final TodoItemRepository todoItemRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public FeedbackResponse create(FeedbackCreateRequest request) {
@@ -48,7 +49,9 @@ public class FeedbackService {
                 .summary(resolveSummary(request.getIsImportant(), request.getContent(), request.getSummary()))
                 .content(request.getContent())
                 .build();
-        return toResponse(feedbackRepository.save(feedback));
+        Feedback saved = feedbackRepository.save(feedback);
+        notificationService.notifyFeedback(saved);
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)

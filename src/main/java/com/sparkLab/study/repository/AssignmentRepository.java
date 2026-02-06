@@ -11,4 +11,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
             Long menteeId,
             LocalDate targetDate
     );
+
+    List<Assignment> findByTodoItem_TargetDate(LocalDate targetDate);
 }
