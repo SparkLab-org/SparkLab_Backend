@@ -14,21 +14,21 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/domain")
+@RequestMapping("feedbacks")
 @RequiredArgsConstructor
 public class FeedbackController {
 
     private final FeedbackService feedbackService;
 
     @PreAuthorize("hasRole('MENTOR')")
-    @PostMapping("/feedbacks")
+    @PostMapping
     public ResponseEntity<FeedbackResponse> create(@RequestBody @Valid FeedbackCreateRequest request) {
         FeedbackResponse created = feedbackService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
-    @GetMapping("/feedbacks")
+    @GetMapping
     public List<FeedbackResponse> list(
             @RequestParam(required = false) Long menteeId,
             @RequestParam(required = false) Long mentorId,
@@ -37,13 +37,13 @@ public class FeedbackController {
     }
 
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
-    @GetMapping("/feedbacks/{feedbackId}")
+    @GetMapping("/{feedbackId}")
     public FeedbackResponse getOne(@PathVariable Long feedbackId) {
         return feedbackService.getOne(feedbackId);
     }
 
     @PreAuthorize("hasRole('MENTOR')")
-    @PutMapping("/feedbacks/{feedbackId}")
+    @PutMapping("/{feedbackId}")
     public FeedbackResponse update(
             @PathVariable Long feedbackId,
             @RequestBody FeedbackUpdateRequest request) {
@@ -51,7 +51,7 @@ public class FeedbackController {
     }
 
     @PreAuthorize("hasRole('MENTOR')")
-    @DeleteMapping("/feedbacks/{feedbackId}")
+    @DeleteMapping("/{feedbackId}")
     public ResponseEntity<Void> delete(@PathVariable Long feedbackId) {
         feedbackService.delete(feedbackId);
         return ResponseEntity.noContent().build();
