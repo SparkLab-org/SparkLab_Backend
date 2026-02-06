@@ -40,6 +40,7 @@ public class AssignmentSubmissionService {
 
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
+    private final NotificationService notificationService;
 
     @Value("${app.upload-dir:uploads}")
     private String uploadDir;
@@ -73,6 +74,7 @@ public class AssignmentSubmissionService {
                 .status("SUBMITTED")
                 .build();
         submission = submissionRepository.save(submission);
+        notificationService.notifyMentorAssignmentSubmitted(submission);
         return toResponse(submission);
     }
 
