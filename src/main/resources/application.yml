@@ -19,5 +19,12 @@ spring:
   cache:
     type: simple
 
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://auth.example.com/.well-known/jwks.json
+
 app:
   upload-dir: uploads

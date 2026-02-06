@@ -1,5 +1,6 @@
 package com.sparkLab.study.entity;
 
+import com.sparkLab.study.security.auth.Account;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
