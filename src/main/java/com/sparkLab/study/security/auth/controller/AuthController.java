@@ -1,4 +1,4 @@
-package com.sparkLab.study.security.auth;
+package com.sparkLab.study.security.auth.controller;
 
 import com.sparkLab.study.security.auth.dto.AccessToken;
 import com.sparkLab.study.security.auth.dto.SignInReq;

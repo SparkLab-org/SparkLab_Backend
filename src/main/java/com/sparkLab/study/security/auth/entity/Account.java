@@ -1,4 +1,4 @@
-package com.sparkLab.study.security.auth;
+package com.sparkLab.study.security.auth.entity;
 
 import com.sparkLab.study.entity.BaseTime;
 import com.sparkLab.study.entity.Notification;
