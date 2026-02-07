@@ -1,5 +1,6 @@
 package com.sparkLab.study.dto.notification;
 
+import com.sparkLab.study.constant.NotificationLinkType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class NotificationResponse {
     private Long notificationId;
     private String type;
     private String title;
-    private String linkType;
+    private NotificationLinkType linkType;
     private Long linkId;
     private Boolean isRead;
     private LocalDateTime createdAt;

@@ -1,5 +1,6 @@
 package com.sparkLab.study.entity;
 
+import com.sparkLab.study.constant.NotificationLinkType;
 import com.sparkLab.study.security.auth.entity.Account;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,7 +24,8 @@ public class Notification {
 
     private String type;
     private String title;
-    private String linkType;
+    @Enumerated(EnumType.STRING)
+    private NotificationLinkType linkType;
     private Long linkId;
     private Boolean isRead;
     private LocalDateTime createdAt;

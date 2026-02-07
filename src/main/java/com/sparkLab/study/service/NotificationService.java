@@ -1,20 +1,19 @@
 package com.sparkLab.study.service;
 
+import com.sparkLab.study.constant.ActiveLevel;
+import com.sparkLab.study.constant.NotificationLinkType;
 import com.sparkLab.study.dto.notification.NotificationResponse;
 import com.sparkLab.study.security.auth.entity.Account;
-import com.sparkLab.study.constant.ActiveLevel;
 import com.sparkLab.study.entity.Assignment;
 import com.sparkLab.study.entity.AssignmentSubmission;
 import com.sparkLab.study.entity.Feedback;
 import com.sparkLab.study.entity.Mentee;
 import com.sparkLab.study.entity.Mentor;
 import com.sparkLab.study.entity.Notification;
-import com.sparkLab.study.entity.Planner;
 import com.sparkLab.study.entity.TodoItem;
 import com.sparkLab.study.repository.AssignmentRepository;
 import com.sparkLab.study.repository.AssignmentSubmissionRepository;
 import com.sparkLab.study.repository.NotificationRepository;
-import com.sparkLab.study.repository.PlannerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -39,10 +38,11 @@ public class NotificationService {
     private static final String TYPE_MENTEE_WARNING = "MENTEE_WARNING";
     private static final String TYPE_MENTEE_DANGER = "MENTEE_DANGER";
 
-    private static final String LINK_PLANNER = "PLANNER";
-    private static final String LINK_ASSIGNMENT = "ASSIGNMENT";
-    private static final String LINK_MENTEE = "MENTEE";
-    private static final String LINK_QNA = "QNA";
+    private static final NotificationLinkType LINK_TODO = NotificationLinkType.TODO;
+    private static final NotificationLinkType LINK_ASSIGNMENT = NotificationLinkType.ASSIGNMENT;
+    private static final NotificationLinkType LINK_FEEDBACK = NotificationLinkType.FEEDBACK;
+    private static final NotificationLinkType LINK_QUESTION = NotificationLinkType.QUESTION;
+    private static final NotificationLinkType LINK_MENTEE = NotificationLinkType.MENTEE;
     private static final String TITLE_TODO_CREATED =
             "📌 새로운 할 일이 등록되었어요.\n플래너에서 바로 확인해보세요!";
     private static final String TITLE_ASSIGNMENT_DUE_SOON =
@@ -65,7 +65,6 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
-    private final PlannerRepository plannerRepository;
 
     @Transactional(readOnly = true)
     public List<NotificationResponse> listByAccount(String accountId) {
@@ -84,9 +83,13 @@ public class NotificationService {
         if (recipient == null) {
             return;
         }
-        Planner planner = todoItem.getPlanner();
-        Long plannerId = planner == null ? null : planner.getPlannerId();
-        createNotification(recipient, TYPE_TODO_CREATED, TITLE_TODO_CREATED, LINK_PLANNER, plannerId);
+        createNotification(
+                recipient,
+                TYPE_TODO_CREATED,
+                TITLE_TODO_CREATED,
+                LINK_TODO,
+                todoItem.getTodoItemId()
+        );
     }
 
     @Transactional
@@ -97,23 +100,21 @@ public class NotificationService {
         }
         TodoItem todoItem = feedback.getTodoItem();
         if (todoItem != null && todoItem.getAssignments() != null && !todoItem.getAssignments().isEmpty()) {
-            Assignment assignment = todoItem.getAssignments().get(0);
             createNotification(
                     mentee.getAccount(),
                     TYPE_ASSIGNMENT_FEEDBACK,
                     TITLE_ASSIGNMENT_FEEDBACK,
-                    LINK_ASSIGNMENT,
-                    assignment.getAssignmentId()
+                    LINK_FEEDBACK,
+                    feedback.getFeedbackId()
             );
             return;
         }
-        Long plannerId = resolvePlannerId(mentee.getMenteeId(), feedback.getTargetDate(), todoItem);
         createNotification(
                 mentee.getAccount(),
                 TYPE_PLANNER_FEEDBACK,
                 TITLE_PLANNER_FEEDBACK,
-                LINK_PLANNER,
-                plannerId
+                LINK_FEEDBACK,
+                feedback.getFeedbackId()
         );
     }
 
@@ -148,7 +149,7 @@ public class NotificationService {
                 recipient,
                 TYPE_MENTOR_QUESTION_CREATED,
                 formatMenteeTitle(TITLE_MENTOR_QUESTION_CREATED, mentee),
-                LINK_QNA,
+                LINK_QUESTION,
                 qnaId
         );
     }
@@ -277,18 +278,6 @@ public class NotificationService {
         }
     }
 
-    private Long resolvePlannerId(Long menteeId, LocalDateTime targetDate, TodoItem todoItem) {
-        if (todoItem != null && todoItem.getPlanner() != null) {
-            return todoItem.getPlanner().getPlannerId();
-        }
-        if (targetDate == null) {
-            return null;
-        }
-        return plannerRepository.findByMentee_MenteeIdAndPlanDate(menteeId, targetDate.toLocalDate())
-                .map(Planner::getPlannerId)
-                .orElse(null);
-    }
-
     private Account resolveMentorAccount(Assignment assignment, Mentee mentee) {
         Mentor mentor = assignment == null ? null : assignment.getMentor();
         if (mentor == null && mentee != null) {
@@ -311,7 +300,7 @@ public class NotificationService {
             Account recipient,
             String type,
             String title,
-            String linkType,
+            NotificationLinkType linkType,
             Long linkId
     ) {
         Notification notification = Notification.builder()
