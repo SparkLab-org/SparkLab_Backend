@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface MentorRepository extends JpaRepository<Mentor, Long> {
-    Optional<Mentor> findByAccount_AccountId(Long accountId);
+    Optional<Mentor> findByAccount_AccountId(String accountId);
 }
