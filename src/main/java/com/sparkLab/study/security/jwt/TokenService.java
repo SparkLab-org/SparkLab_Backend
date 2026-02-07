@@ -26,8 +26,8 @@ public class TokenService {
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .subject(accountId)
-                .issuer("https://auth.example.com")
-                .claim("roles", List.of(role))
+                .issuer("http://localhost:8080")
+                .claim("roles", List.of(role.name()))
                 .issueTime(new Date())
                 .expirationTime(
                         new Date(System.currentTimeMillis() + 1000 * 60 * 15)

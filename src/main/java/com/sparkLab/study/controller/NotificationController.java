@@ -20,7 +20,7 @@ public class NotificationController {
 
     @PreAuthorize("hasAnyRole('MENTEE','MENTOR')")
     @GetMapping
-    public List<NotificationResponse> list(@RequestParam Long accountId) {
+    public List<NotificationResponse> list(@RequestParam String accountId) {
         return notificationService.listByAccount(accountId);
     }
 }

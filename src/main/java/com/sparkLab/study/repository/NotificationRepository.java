@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByRecipient_AccountIdOrderByCreatedAtDesc(Long accountId);
+    List<Notification> findByRecipient_AccountIdOrderByCreatedAtDesc(String accountId);
 
     boolean existsByRecipient_AccountIdAndTypeAndLinkTypeAndLinkIdAndCreatedAtBetween(
-            Long accountId,
+            String accountId,
             String type,
             String linkType,
             Long linkId,

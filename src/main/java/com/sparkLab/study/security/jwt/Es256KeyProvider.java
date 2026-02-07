@@ -1,7 +1,9 @@
 package com.sparkLab.study.security.jwt;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.security.interfaces.ECPrivateKey;
 import jakarta.annotation.PostConstruct;
@@ -11,6 +13,7 @@ import java.security.interfaces.ECPublicKey;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class Es256KeyProvider {
 
     private ECKey ecKey;
@@ -36,7 +39,9 @@ public class Es256KeyProvider {
         return ecKey;
     }
 
+
     public ECKey getPublicKey() {
         return ecKey.toPublicJWK();
     }
+
 }
