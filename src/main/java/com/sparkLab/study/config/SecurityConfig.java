@@ -16,20 +16,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/favicon.ico",
-                                "/health",
-                                "/pingtest",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs"
-                        ).permitAll()
-                        .anyRequest().permitAll()
-                )
-
+                .authorizeHttpRequests(a -> a.anyRequest().permitAll())
                 .csrf(csrf -> csrf.disable());
         return http.build();
     }

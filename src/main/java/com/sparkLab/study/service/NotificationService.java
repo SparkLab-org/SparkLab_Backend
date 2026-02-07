@@ -1,7 +1,7 @@
 package com.sparkLab.study.service;
 
 import com.sparkLab.study.dto.notification.NotificationResponse;
-import com.sparkLab.study.entity.Account;
+import com.sparkLab.study.security.auth.entity.Account;
 import com.sparkLab.study.constant.ActiveLevel;
 import com.sparkLab.study.entity.Assignment;
 import com.sparkLab.study.entity.AssignmentSubmission;
@@ -68,7 +68,7 @@ public class NotificationService {
     private final PlannerRepository plannerRepository;
 
     @Transactional(readOnly = true)
-    public List<NotificationResponse> listByAccount(Long accountId) {
+    public List<NotificationResponse> listByAccount(String accountId) {
         return notificationRepository.findByRecipient_AccountIdOrderByCreatedAtDesc(accountId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

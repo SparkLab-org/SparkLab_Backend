@@ -19,5 +19,11 @@ spring:
   cache:
     type: simple
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/.well-known/jwks.json
+
 app:
   upload-dir: uploads
