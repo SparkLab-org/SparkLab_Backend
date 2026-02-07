@@ -3,7 +3,7 @@ package com.sparkLab.study.service;
 import com.sparkLab.study.dto.assignment.AssignmentSubmissionResponse;
 import com.sparkLab.study.entity.Assignment;
 import com.sparkLab.study.entity.AssignmentSubmission;
-import com.sparkLab.study.exception.ResourceNotFoundException;
+import com.sparkLab.study.exception.TaskResourceNotFoundException;
 import com.sparkLab.study.repository.AssignmentRepository;
 import com.sparkLab.study.repository.AssignmentSubmissionRepository;
 import lombok.RequiredArgsConstructor;
@@ -50,9 +50,9 @@ public class AssignmentSubmissionService {
         validateFile(file);
 
         Assignment assignment = assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("과제를 찾을 수 없습니다. assignmentId=" + assignmentId));
+                .orElseThrow(() -> new TaskResourceNotFoundException("과제를 찾을 수 없습니다. assignmentId=" + assignmentId));
         if (assignment.getTodoItem() == null || assignment.getTodoItem().getMentee() == null) {
-            throw new ResourceNotFoundException("과제에 연결된 멘티가 없습니다. assignmentId=" + assignmentId);
+            throw new TaskResourceNotFoundException("과제에 연결된 멘티가 없습니다. assignmentId=" + assignmentId);
         }
         String extension = getExtension(file.getOriginalFilename());
         String filename = UUID.randomUUID() + (extension.isEmpty() ? "" : "." + extension);
