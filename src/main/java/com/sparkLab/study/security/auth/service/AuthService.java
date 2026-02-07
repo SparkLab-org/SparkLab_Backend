@@ -1,6 +1,6 @@
 package com.sparkLab.study.security.auth.service;
 
-import com.sparkLab.study.exception.BusinessException;
+import com.sparkLab.study.common.exception.BusinessException;
 import com.sparkLab.study.security.auth.entity.Account;
 import com.sparkLab.study.security.auth.repository.AccountRepository;
 import com.sparkLab.study.security.auth.dto.AccessToken;
