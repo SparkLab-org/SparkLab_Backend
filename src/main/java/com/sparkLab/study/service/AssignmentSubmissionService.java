@@ -1,5 +1,6 @@
 package com.sparkLab.study.service;
 
+import com.sparkLab.study.dto.assignment.AssignmentSubmissionBatchResponse;
 import com.sparkLab.study.dto.assignment.AssignmentSubmissionResponse;
 import com.sparkLab.study.entity.Assignment;
 import com.sparkLab.study.entity.AssignmentSubmission;
@@ -17,6 +18,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -46,47 +49,77 @@ public class AssignmentSubmissionService {
     private String uploadDir;
 
     @Transactional
-    public AssignmentSubmissionResponse submit(Long assignmentId, MultipartFile file) {
-        validateFile(file);
+    public AssignmentSubmissionBatchResponse submit(
+            Long assignmentId,
+            MultipartFile file,
+            List<MultipartFile> files,
+            String comment
+    ) {
+        List<MultipartFile> uploadTargets = normalizeFiles(file, files);
+        validateFiles(uploadTargets);
 
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new TaskResourceNotFoundException("과제를 찾을 수 없습니다. assignmentId=" + assignmentId));
         if (assignment.getTodoItem() == null || assignment.getTodoItem().getMentee() == null) {
             throw new TaskResourceNotFoundException("과제에 연결된 멘티가 없습니다. assignmentId=" + assignmentId);
         }
-        String extension = getExtension(file.getOriginalFilename());
-        String filename = UUID.randomUUID() + (extension.isEmpty() ? "" : "." + extension);
+        List<AssignmentSubmissionResponse> responses = new ArrayList<>();
         Path uploadPath = Paths.get(uploadDir, "assignments", String.valueOf(assignmentId));
         createDirectories(uploadPath);
 
-        Path targetPath = uploadPath.resolve(filename).normalize();
-        try {
-            Files.copy(file.getInputStream(), targetPath);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("파일 저장에 실패했습니다.");
+        for (MultipartFile uploadFile : uploadTargets) {
+            String extension = getExtension(uploadFile.getOriginalFilename());
+            String filename = UUID.randomUUID() + (extension.isEmpty() ? "" : "." + extension);
+            Path targetPath = uploadPath.resolve(filename).normalize();
+            try {
+                Files.copy(uploadFile.getInputStream(), targetPath);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("파일 저장에 실패했습니다.");
+            }
+
+            String imageUrl = "/uploads/assignments/" + assignmentId + "/" + filename;
+            AssignmentSubmission submission = AssignmentSubmission.builder()
+                    .assignment(assignment)
+                    .mentee(assignment.getTodoItem().getMentee())
+                    .imageUrl(imageUrl)
+                    .comment(comment)
+                    .status("SUBMITTED")
+                    .build();
+            submission = submissionRepository.save(submission);
+            notificationService.notifyMentorAssignmentSubmitted(submission);
+            responses.add(toResponse(submission));
         }
 
-        String imageUrl = "/uploads/assignments/" + assignmentId + "/" + filename;
-        AssignmentSubmission submission = AssignmentSubmission.builder()
-                .assignment(assignment)
-                .mentee(assignment.getTodoItem().getMentee())
-                .imageUrl(imageUrl)
-                .status("SUBMITTED")
+        return AssignmentSubmissionBatchResponse.builder()
+                .submissions(responses)
                 .build();
-        submission = submissionRepository.save(submission);
-        notificationService.notifyMentorAssignmentSubmitted(submission);
-        return toResponse(submission);
     }
 
-    private void validateFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
+    private List<MultipartFile> normalizeFiles(MultipartFile file, List<MultipartFile> files) {
+        if (files != null && !files.isEmpty()) {
+            return files;
+        }
+        List<MultipartFile> result = new ArrayList<>();
+        if (file != null) {
+            result.add(file);
+        }
+        return result;
+    }
+
+    private void validateFiles(List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) {
             throw new IllegalArgumentException("제출 파일은 필수입니다.");
         }
-        String contentType = file.getContentType();
-        String extension = getExtension(file.getOriginalFilename());
-        if ((contentType != null && !ALLOWED_CONTENT_TYPES.contains(contentType))
-                && (extension.isEmpty() || !ALLOWED_EXTENSIONS.contains(extension))) {
-            throw new IllegalArgumentException("이미지(jpg/png/gif) 파일만 업로드할 수 있습니다.");
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                throw new IllegalArgumentException("제출 파일은 필수입니다.");
+            }
+            String contentType = file.getContentType();
+            String extension = getExtension(file.getOriginalFilename());
+            if ((contentType != null && !ALLOWED_CONTENT_TYPES.contains(contentType))
+                    && (extension.isEmpty() || !ALLOWED_EXTENSIONS.contains(extension))) {
+                throw new IllegalArgumentException("이미지(jpg/png/gif) 파일만 업로드할 수 있습니다.");
+            }
         }
     }
 
@@ -115,6 +148,7 @@ public class AssignmentSubmissionService {
                 .assignmentId(submission.getAssignment().getAssignmentId())
                 .menteeId(submission.getMentee().getMenteeId())
                 .imageUrl(submission.getImageUrl())
+                .comment(submission.getComment())
                 .status(submission.getStatus())
                 .createTime(submission.getCreateTime())
                 .build();

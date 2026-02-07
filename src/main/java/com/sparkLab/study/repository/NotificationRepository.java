@@ -1,6 +1,7 @@
 package com.sparkLab.study.repository;
 
 import com.sparkLab.study.entity.Notification;
+import com.sparkLab.study.constant.NotificationLinkType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     boolean existsByRecipient_AccountIdAndTypeAndLinkTypeAndLinkIdAndCreatedAtBetween(
             String accountId,
             String type,
-            String linkType,
+            NotificationLinkType linkType,
             Long linkId,
             LocalDateTime start,
             LocalDateTime end
