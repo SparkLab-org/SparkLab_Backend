@@ -24,6 +24,7 @@ public class AssignmentSubmission extends BaseTime{
     private Mentee mentee;
 
     private String imageUrl;
+    private String comment;
     private String status;
 
 }
