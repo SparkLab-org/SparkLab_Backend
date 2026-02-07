@@ -111,7 +111,7 @@ public class TodoItemService {
                 .mentee(planner.getMentee())
                 .mentor(isFixed ? planner.getMentee().getMentorId() : null)
                 .planner(planner)
-                .targetDate(planner.getPlanDate())
+                .targetDate(request.getTargetDate() != null ? request.getTargetDate() : planner.getPlanDate())
                 .title(request.getTitle())
                 .subject(request.getSubject())
                 .type(request.getType())
