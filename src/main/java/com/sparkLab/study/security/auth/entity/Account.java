@@ -1,7 +1,7 @@
 package com.sparkLab.study.security.auth.entity;
 
-import com.sparkLab.study.entity.BaseTime;
-import com.sparkLab.study.entity.Notification;
+import com.sparkLab.study.common.entity.BaseTime;
+import com.sparkLab.study.activity.entity.Notification;
 import com.sparkLab.study.security.auth.constant.AccountRole;
 import com.sparkLab.study.security.auth.constant.AccountStatus;
 import jakarta.persistence.*;

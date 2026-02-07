@@ -31,6 +31,10 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll() // 필요 시 수정
+                        
+
+
+
                 )
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt
