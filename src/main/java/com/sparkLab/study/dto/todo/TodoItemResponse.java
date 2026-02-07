@@ -23,6 +23,7 @@ public class TodoItemResponse {
     private String status;
     private Integer plannedMinutes;
     private Integer actualMinutes;
+    private Integer actualSeconds;
     private LocalDateTime completedAt;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

@@ -126,11 +126,13 @@ public class TodoItemService {
 
     private TodoItem applyUpdate(TodoItem todo, TodoItemUpdateRequest request) {
         if (request.getTitle() != null) todo.setTitle(request.getTitle());
+        if (request.getTargetDate() != null) todo.setTargetDate(request.getTargetDate());
         if (request.getSubject() != null) todo.setSubject(request.getSubject());
         if (request.getType() != null) todo.setType(request.getType());
         if (request.getStatus() != null) todo.setStatus(request.getStatus());
         if (request.getPlannedMinutes() != null) todo.setPlannedMinutes(request.getPlannedMinutes());
         if (request.getActualMinutes() != null) todo.setActualMinutes(request.getActualMinutes());
+        if (request.getActualSeconds() != null) todo.setActualSeconds(request.getActualSeconds());
         if (request.getCompletedAt() != null) todo.setCompletedAt(request.getCompletedAt());
         return todo;
     }
@@ -147,6 +149,7 @@ public class TodoItemService {
                 .status(todo.getStatus())
                 .plannedMinutes(todo.getPlannedMinutes())
                 .actualMinutes(todo.getActualMinutes())
+                .actualSeconds(todo.getActualSeconds())
                 .completedAt(todo.getCompletedAt())
                 .createTime(todo.getCreateTime())
                 .updateTime(todo.getUpdateTime())

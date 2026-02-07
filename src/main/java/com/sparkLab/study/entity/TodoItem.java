@@ -37,6 +37,7 @@ public class TodoItem extends BaseTime{
     private String status;
     private Integer plannedMinutes;
     private Integer actualMinutes;
+    private Integer actualSeconds;
     private LocalDateTime completedAt;
 
     @OneToMany(mappedBy = "todoItem", cascade = CascadeType.ALL)
