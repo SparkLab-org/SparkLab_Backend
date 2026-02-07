@@ -12,6 +12,7 @@ public class AssignmentSubmissionResponse {
     private Long assignmentId;
     private Long menteeId;
     private String imageUrl;
+    private String comment;
     private String status;
     private LocalDateTime createTime;
 }
