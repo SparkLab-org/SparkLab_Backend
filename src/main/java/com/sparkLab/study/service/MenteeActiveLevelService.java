@@ -21,6 +21,7 @@ public class MenteeActiveLevelService {
     private final MenteeRepository menteeRepository;
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
+    private final NotificationService notificationService;
 
     @Scheduled(cron = "${app.active-level.cron:0 5 0 * * *}")
     @Transactional
@@ -32,6 +33,7 @@ public class MenteeActiveLevelService {
             ActiveLevel autoLevel = resolveAutoLevel(missedStreak);
             if (autoLevel != null && isHigher(autoLevel, mentee.getActiveLevel())) {
                 mentee.setActiveLevel(autoLevel);
+                notificationService.notifyMentorActiveLevelChanged(mentee, autoLevel);
             }
         }
     }

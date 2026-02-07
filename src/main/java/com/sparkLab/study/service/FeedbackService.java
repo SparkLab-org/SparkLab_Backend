@@ -7,7 +7,8 @@ import com.sparkLab.study.entity.Feedback;
 import com.sparkLab.study.entity.Mentee;
 import com.sparkLab.study.entity.Mentor;
 import com.sparkLab.study.entity.TodoItem;
-import com.sparkLab.study.exception.ResourceNotFoundException;
+import com.sparkLab.study.exception.PlannerResourceNotFoundException;
+import com.sparkLab.study.exception.TaskResourceNotFoundException;
 import com.sparkLab.study.repository.FeedbackRepository;
 import com.sparkLab.study.repository.MenteeRepository;
 import com.sparkLab.study.repository.MentorRepository;
@@ -27,17 +28,18 @@ public class FeedbackService {
     private final MentorRepository mentorRepository;
     private final MenteeRepository menteeRepository;
     private final TodoItemRepository todoItemRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public FeedbackResponse create(FeedbackCreateRequest request) {
         Mentor mentor = mentorRepository.findById(request.getMentorId())
-                .orElseThrow(() -> new ResourceNotFoundException("멘토를 찾을 수 없습니다. mentorId=" + request.getMentorId()));
+                .orElseThrow(() -> new PlannerResourceNotFoundException("멘토를 찾을 수 없습니다. mentorId=" + request.getMentorId()));
         Mentee mentee = menteeRepository.findById(request.getMenteeId())
-                .orElseThrow(() -> new ResourceNotFoundException("멘티를 찾을 수 없습니다. menteeId=" + request.getMenteeId()));
+                .orElseThrow(() -> new PlannerResourceNotFoundException("멘티를 찾을 수 없습니다. menteeId=" + request.getMenteeId()));
         TodoItem todoItem = null;
         if (request.getTodoItemId() != null) {
             todoItem = todoItemRepository.findById(request.getTodoItemId())
-                    .orElseThrow(() -> new ResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + request.getTodoItemId()));
+                    .orElseThrow(() -> new PlannerResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + request.getTodoItemId()));
         }
         Feedback feedback = Feedback.builder()
                 .mentor(mentor)
@@ -48,7 +50,9 @@ public class FeedbackService {
                 .summary(resolveSummary(request.getIsImportant(), request.getContent(), request.getSummary()))
                 .content(request.getContent())
                 .build();
-        return toResponse(feedbackRepository.save(feedback));
+        Feedback saved = feedbackRepository.save(feedback);
+        notificationService.notifyFeedback(saved);
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -76,7 +80,7 @@ public class FeedbackService {
         Feedback feedback = findFeedback(feedbackId);
         if (request.getTodoItemId() != null) {
             TodoItem todoItem = todoItemRepository.findById(request.getTodoItemId())
-                    .orElseThrow(() -> new ResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + request.getTodoItemId()));
+                    .orElseThrow(() -> new PlannerResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + request.getTodoItemId()));
             feedback.setTodoItem(todoItem);
         }
         if (request.getTargetDate() != null) feedback.setTargetDate(request.getTargetDate());
@@ -98,7 +102,7 @@ public class FeedbackService {
 
     private Feedback findFeedback(Long feedbackId) {
         return feedbackRepository.findById(feedbackId)
-                .orElseThrow(() -> new ResourceNotFoundException("피드백을 찾을 수 없습니다. feedbackId=" + feedbackId));
+                .orElseThrow(() -> new TaskResourceNotFoundException("피드백을 찾을 수 없습니다. feedbackId=" + feedbackId));
     }
 
     private FeedbackResponse toResponse(Feedback feedback) {
