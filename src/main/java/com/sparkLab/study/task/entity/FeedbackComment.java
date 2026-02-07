@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "feedback_comments")
+@Table(name = "feedbackComments")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,7 +20,7 @@ public class FeedbackComment extends BaseTime {
     private Long feedbackCommentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "feedback_id", nullable = false)
+    @JoinColumn(name = "feedbackId", nullable = false)
     private Feedback feedback;
 
     @Enumerated(EnumType.STRING)
