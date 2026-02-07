@@ -5,8 +5,8 @@ import com.sparkLab.study.dto.todo.TodoItemResponse;
 import com.sparkLab.study.dto.todo.TodoItemUpdateRequest;
 import com.sparkLab.study.entity.Planner;
 import com.sparkLab.study.entity.TodoItem;
-import com.sparkLab.study.exception.MentorFixedTodoException;
-import com.sparkLab.study.exception.ResourceNotFoundException;
+import com.sparkLab.study.exception.PlannerFixedTodoException;
+import com.sparkLab.study.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.repository.PlannerRepository;
 import com.sparkLab.study.repository.TodoItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +65,7 @@ public class TodoItemService {
     public TodoItemResponse update(Long todoItemId, TodoItemUpdateRequest request) {
         TodoItem todo = findTodo(todoItemId);
         if (Boolean.TRUE.equals(todo.getIsFixed())) {
-            throw new MentorFixedTodoException();
+            throw new PlannerFixedTodoException();
         }
         applyUpdate(todo, request);
         return toResponse(todoItemRepository.save(todo));
@@ -84,7 +84,7 @@ public class TodoItemService {
     public void delete(Long todoItemId) {
         TodoItem todo = findTodo(todoItemId);
         if (Boolean.TRUE.equals(todo.getIsFixed())) {
-            throw new MentorFixedTodoException();
+            throw new PlannerFixedTodoException();
         }
         todoItemRepository.delete(todo);
     }
@@ -98,14 +98,14 @@ public class TodoItemService {
 
     private TodoItem findTodo(Long todoItemId) {
         return todoItemRepository.findById(todoItemId)
-                .orElseThrow(() -> new ResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + todoItemId));
+                .orElseThrow(() -> new PlannerResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + todoItemId));
     }
 
     private TodoItemResponse createTodo(TodoItemCreateRequest request, boolean isFixed) {
         Planner planner = plannerRepository.findById(request.getPlannerId())
-                .orElseThrow(() -> new ResourceNotFoundException("플래너를 찾을 수 없습니다. plannerId=" + request.getPlannerId()));
+                .orElseThrow(() -> new PlannerResourceNotFoundException("플래너를 찾을 수 없습니다. plannerId=" + request.getPlannerId()));
         if (planner.getMentee() == null) {
-            throw new ResourceNotFoundException("플래너에 연결된 멘티가 없습니다. plannerId=" + request.getPlannerId());
+            throw new PlannerResourceNotFoundException("플래너에 연결된 멘티가 없습니다. plannerId=" + request.getPlannerId());
         }
         TodoItem todo = TodoItem.builder()
                 .mentee(planner.getMentee())

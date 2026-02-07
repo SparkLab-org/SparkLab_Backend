@@ -13,15 +13,22 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MentorFixedTodoException.class)
-    public ResponseEntity<Map<String, String>> handleMentorFixedTodo(MentorFixedTodoException e) {
+    @ExceptionHandler(PlannerFixedTodoException.class)
+    public ResponseEntity<Map<String, String>> handlePlannerFixedTodo(PlannerFixedTodoException e) {
         Map<String, String> body = new HashMap<>();
         body.put("message", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(ResourceNotFoundException e) {
+    @ExceptionHandler(TaskResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleTaskNotFound(TaskResourceNotFoundException e) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(PlannerResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handlePlannerNotFound(PlannerResourceNotFoundException e) {
         Map<String, String> body = new HashMap<>();
         body.put("message", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
