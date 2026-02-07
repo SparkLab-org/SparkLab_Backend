@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 @Table(
         name = "studyTimelog",
         indexes = {
-                @Index(name = "idx_timelog_user_start", columnList = "user_id, start_at"),
-                @Index(name = "idx_timelog_user_stop", columnList = "user_id, stop_at"),
-                @Index(name = "idx_timelog_routine", columnList = "routine_id")
+                @Index(name = "idx_timelog_account_start", columnList = "accountId, startAt"),
+                @Index(name = "idx_timelog_account_stop", columnList = "accountId, stopAt"),
+                @Index(name = "idx_timelog_routine", columnList = "routineId")
         }
 )
 @Getter
@@ -27,6 +27,10 @@ public class StudyTimeLog extends BaseTime{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "routineId")
     private Routine routineId;   // nullable
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "accountId")
+    private Account account;     // nullable
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "todoItemId")
