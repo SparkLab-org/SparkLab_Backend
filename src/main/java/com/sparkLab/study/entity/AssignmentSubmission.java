@@ -6,6 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "assignmentSubmissions")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,4 +28,11 @@ public class AssignmentSubmission extends BaseTime{
     private String comment;
     private String status;
 
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 }

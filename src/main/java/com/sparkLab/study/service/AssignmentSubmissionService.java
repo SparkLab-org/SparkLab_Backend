@@ -95,6 +95,68 @@ public class AssignmentSubmissionService {
                 .build();
     }
 
+    @Transactional
+    public AssignmentSubmissionResponse update(
+            Long assignmentId,
+            Long submissionId,
+            MultipartFile file,
+            String comment
+    ) {
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new TaskResourceNotFoundException("제출을 찾을 수 없습니다. submissionId=" + submissionId));
+        if (!submission.getAssignment().getAssignmentId().equals(assignmentId)) {
+            throw new TaskResourceNotFoundException("과제와 제출 정보가 일치하지 않습니다. assignmentId=" + assignmentId);
+        }
+        if ((file == null || file.isEmpty()) && comment == null) {
+            throw new IllegalArgumentException("수정할 내용이 없습니다.");
+        }
+        if (file != null && !file.isEmpty()) {
+            validateFiles(List.of(file));
+            String extension = getExtension(file.getOriginalFilename());
+            String filename = UUID.randomUUID() + (extension.isEmpty() ? "" : "." + extension);
+            Path uploadPath = Paths.get(uploadDir, "assignments", String.valueOf(assignmentId));
+            createDirectories(uploadPath);
+
+            Path targetPath = uploadPath.resolve(filename).normalize();
+            try {
+                Files.copy(file.getInputStream(), targetPath);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("파일 저장에 실패했습니다.");
+            }
+            deleteExistingFile(submission.getImageUrl(), assignmentId);
+            submission.setImageUrl("/uploads/assignments/" + assignmentId + "/" + filename);
+        }
+        if (comment != null) {
+            String normalized = comment.trim();
+            submission.setComment(normalized.isEmpty() ? null : normalized);
+        }
+        submission = submissionRepository.save(submission);
+        return toResponse(submission);
+    }
+
+    @Transactional
+    public void delete(Long assignmentId, Long submissionId) {
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new TaskResourceNotFoundException("제출을 찾을 수 없습니다. submissionId=" + submissionId));
+        if (!submission.getAssignment().getAssignmentId().equals(assignmentId)) {
+            throw new TaskResourceNotFoundException("과제와 제출 정보가 일치하지 않습니다. assignmentId=" + assignmentId);
+        }
+        deleteExistingFile(submission.getImageUrl(), assignmentId);
+        submissionRepository.delete(submission);
+    }
+
+    @Transactional
+    public AssignmentSubmissionResponse deleteComment(Long assignmentId, Long submissionId) {
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new TaskResourceNotFoundException("제출을 찾을 수 없습니다. submissionId=" + submissionId));
+        if (!submission.getAssignment().getAssignmentId().equals(assignmentId)) {
+            throw new TaskResourceNotFoundException("과제와 제출 정보가 일치하지 않습니다. assignmentId=" + assignmentId);
+        }
+        submission.setComment(null);
+        submission = submissionRepository.save(submission);
+        return toResponse(submission);
+    }
+
     private List<MultipartFile> normalizeFiles(MultipartFile file, List<MultipartFile> files) {
         if (files != null && !files.isEmpty()) {
             return files;
@@ -140,6 +202,30 @@ public class AssignmentSubmissionService {
         } catch (IOException e) {
             throw new IllegalArgumentException("업로드 경로를 생성할 수 없습니다.");
         }
+    }
+
+    private void deleteExistingFile(String imageUrl, Long assignmentId) {
+        String filename = extractFilename(imageUrl);
+        if (filename == null) {
+            return;
+        }
+        Path path = Paths.get(uploadDir, "assignments", String.valueOf(assignmentId), filename);
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("기존 파일 삭제에 실패했습니다.");
+        }
+    }
+
+    private String extractFilename(String imageUrl) {
+        if (!StringUtils.hasText(imageUrl)) {
+            return null;
+        }
+        int lastSlash = imageUrl.lastIndexOf('/');
+        if (lastSlash < 0 || lastSlash == imageUrl.length() - 1) {
+            return null;
+        }
+        return imageUrl.substring(lastSlash + 1);
     }
 
     private AssignmentSubmissionResponse toResponse(AssignmentSubmission submission) {
