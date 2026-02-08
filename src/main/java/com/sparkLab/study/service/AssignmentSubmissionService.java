@@ -127,7 +127,8 @@ public class AssignmentSubmissionService {
             submission.setImageUrl("/uploads/assignments/" + assignmentId + "/" + filename);
         }
         if (comment != null) {
-            submission.setComment(comment);
+            String normalized = comment.trim();
+            submission.setComment(normalized.isEmpty() ? null : normalized);
         }
         submission = submissionRepository.save(submission);
         return toResponse(submission);
@@ -142,6 +143,18 @@ public class AssignmentSubmissionService {
         }
         deleteExistingFile(submission.getImageUrl(), assignmentId);
         submissionRepository.delete(submission);
+    }
+
+    @Transactional
+    public AssignmentSubmissionResponse deleteComment(Long assignmentId, Long submissionId) {
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new TaskResourceNotFoundException("제출을 찾을 수 없습니다. submissionId=" + submissionId));
+        if (!submission.getAssignment().getAssignmentId().equals(assignmentId)) {
+            throw new TaskResourceNotFoundException("과제와 제출 정보가 일치하지 않습니다. assignmentId=" + assignmentId);
+        }
+        submission.setComment(null);
+        submission = submissionRepository.save(submission);
+        return toResponse(submission);
     }
 
     private List<MultipartFile> normalizeFiles(MultipartFile file, List<MultipartFile> files) {

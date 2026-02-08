@@ -52,4 +52,13 @@ public class AssignmentSubmissionController {
         submissionService.delete(assignmentId, submissionId);
         return ResponseEntity.noContent().build();
     }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @DeleteMapping("/{assignmentId}/submissions/{submissionId}/comment")
+    public ResponseEntity<AssignmentSubmissionResponse> deleteComment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long submissionId) {
+        AssignmentSubmissionResponse response = submissionService.deleteComment(assignmentId, submissionId);
+        return ResponseEntity.ok(response);
+    }
 }
