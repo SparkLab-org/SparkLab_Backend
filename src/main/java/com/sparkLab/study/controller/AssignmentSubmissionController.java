@@ -1,6 +1,7 @@
 package com.sparkLab.study.controller;
 
 import com.sparkLab.study.dto.assignment.AssignmentSubmissionBatchResponse;
+import com.sparkLab.study.dto.assignment.AssignmentSubmissionResponse;
 import com.sparkLab.study.service.AssignmentSubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,5 +30,26 @@ public class AssignmentSubmissionController {
             @RequestParam(value = "comment", required = false) String comment) {
         AssignmentSubmissionBatchResponse response = submissionService.submit(assignmentId, file, files, comment);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PutMapping(value = "/{assignmentId}/submissions/{submissionId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AssignmentSubmissionResponse> update(
+            @PathVariable Long assignmentId,
+            @PathVariable Long submissionId,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "comment", required = false) String comment) {
+        AssignmentSubmissionResponse response = submissionService.update(assignmentId, submissionId, file, comment);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @DeleteMapping("/{assignmentId}/submissions/{submissionId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long assignmentId,
+            @PathVariable Long submissionId) {
+        submissionService.delete(assignmentId, submissionId);
+        return ResponseEntity.noContent().build();
     }
 }
