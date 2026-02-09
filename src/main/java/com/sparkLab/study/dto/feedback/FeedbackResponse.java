@@ -13,6 +13,7 @@ public class FeedbackResponse {
     private Long mentorId;
     private Long menteeId;
     private Long todoItemId;
+    private Long assignmentId;
     private LocalDateTime targetDate;
     private Subject subject;
     private String summary;

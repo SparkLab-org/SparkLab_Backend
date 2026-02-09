@@ -14,6 +14,8 @@ public class FeedbackUpdateRequest {
 
     private Long todoItemId;
 
+    private Long assignmentId;
+
     private LocalDateTime targetDate;
 
     private Subject subject;

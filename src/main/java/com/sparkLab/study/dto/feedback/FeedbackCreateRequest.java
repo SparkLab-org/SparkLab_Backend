@@ -22,6 +22,8 @@ public class FeedbackCreateRequest {
 
     private Long todoItemId;
 
+    private Long assignmentId;
+
     private LocalDateTime targetDate;
 
     @NotNull(message = "subject는 필수입니다")

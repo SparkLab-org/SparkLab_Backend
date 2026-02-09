@@ -33,6 +33,10 @@ public class Feedback extends BaseTime{
     private TodoItem todoItem;
 
     @ManyToOne
+    @JoinColumn(name = "assignmentId")
+    private Assignment assignment;
+
+    @ManyToOne
     @JoinColumn(name = "mentorId")
     private Mentor mentor;
 

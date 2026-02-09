@@ -9,5 +9,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     List<Feedback> findByMentee_MenteeIdOrderByCreateTimeAsc(Long menteeId);
     List<Feedback> findByMentor_MentorIdOrderByCreateTimeAsc(Long mentorId);
     List<Feedback> findByTodoItem_TodoItemIdOrderByCreateTimeAsc(Long todoItemId);
+    List<Feedback> findByAssignment_AssignmentIdOrderByCreateTimeAsc(Long assignmentId);
     List<Feedback> findAllByOrderByCreateTimeAsc();
 }
