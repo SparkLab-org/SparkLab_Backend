@@ -7,6 +7,7 @@ import com.sparkLab.study.planner.dto.DailyCommentReq;
 import com.sparkLab.study.planner.dto.DailyCommentRes;
 import com.sparkLab.study.planner.dto.DailyPlanCreateReq;
 import com.sparkLab.study.planner.dto.DailyPlanCreateRes;
+import com.sparkLab.study.user.entity.Mentee;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import com.sparkLab.study.planner.entity.DailyPlan;
@@ -24,9 +25,9 @@ public class DailyPlanService {
 
     // 요청 응답 캡슐화 - 확장성 고려
     @Transactional
-    public DailyPlanCreateRes findOrCreate(DailyPlanCreateReq req){
+    public DailyPlanCreateRes findOrCreate(DailyPlanCreateReq req, Long menteeId){
 
-        Optional<Long> entityId = dailyPlanRepository.findIdByMenteeIdAndPlanDate(req.getMenteeId(), req.getPlanDate());
+        Optional<Long> entityId = dailyPlanRepository.findIdByMenteeIdAndPlanDate(menteeId, req.getPlanDate());
         // 기존 조회
         if(entityId.isPresent()){
             return DailyPlanCreateRes.builder()
@@ -35,9 +36,11 @@ public class DailyPlanService {
         }
         // 새로 생성
         DailyPlan dailyPlan = modelMapper.map(req, DailyPlan.class);
-        Long dailyPlanId = dailyPlanRepository.save(dailyPlan).getDailyPlanId();
+        dailyPlan.assignMentee(menteeId);
+        dailyPlanRepository.save(dailyPlan);
+
         return DailyPlanCreateRes.builder()
-                .dailyPlanId(dailyPlanId)
+                .dailyPlanId(dailyPlan.getDailyPlanId())
                 .created(true)
                 .build();
     }
@@ -45,16 +48,17 @@ public class DailyPlanService {
     // 선언적 접근 제어, 즉시 권한 검증 예외처리
     @Transactional
     // 보안과 도메인 분리보다 조회 최소 쿼리 우선시, 이미 menteeId 자체가 해당 도메인에 맞게 설계되었음.
-    public DailyCommentRes updateComment(DailyCommentReq req) {
+    public DailyCommentRes updateComment(DailyCommentReq req, Long menteeId) {
 
         DailyPlan dailyPlan = dailyPlanRepository.findById(req.getDailyPlanId())
                 .orElseThrow(() -> new ParentResourceNotFoundException("DailyPlan", req.getDailyPlanId()));
 
-        if (!dailyPlan.getMentee().getMenteeId().equals(req.getMenteeId())) {
+        if (!dailyPlan.getMentee().getMenteeId().equals(menteeId)) {
             throw new NotOwnerException("DailyPlan", dailyPlan.getDailyPlanId());
         }
 
         dailyPlan.updateComment(req.getComment());
+
         // dailyPlanRepository.save(dailyPlan);
 
         return DailyCommentRes.builder()

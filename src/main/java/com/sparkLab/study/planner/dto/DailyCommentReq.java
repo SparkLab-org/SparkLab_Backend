@@ -9,7 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DailyCommentReq {
 
-    private Long menteeId;
     private Long dailyPlanId;
     private String comment;
 }

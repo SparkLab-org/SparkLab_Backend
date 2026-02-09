@@ -41,5 +41,8 @@ public class DailyPlan extends BaseTime {
         this.comment = comment;
     }
 
-
+    public void assignMentee(Long menteeId) {
+        this.mentee  = new Mentee();
+        this.mentee.setMenteeId(menteeId);
+    }
 }

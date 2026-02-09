@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class DailyPlanCreateReq {
 
-    private Long menteeId;
     private LocalDate planDate;
     private String comment;
 }

@@ -28,9 +28,8 @@ public class DailyPlanController {
                                                            @RequestBody DailyPlanCreateReq req) {
         // 다형성
         Long menteeId = menteeService.accountToUser(jwt.getSubject());
-        req.setMenteeId(menteeId);
         // 도메인 경계분리
-        DailyPlanCreateRes res = dailyPlanService.findOrCreate(req);
+        DailyPlanCreateRes res = dailyPlanService.findOrCreate(req, menteeId);
 
         if (res.isCreated()) {
             // 새로 생성 → 201 Created + Location 헤더
@@ -49,11 +48,10 @@ public class DailyPlanController {
                                                          @AuthenticationPrincipal Jwt jwt) {
 
         Long menteeId = menteeService.accountToUser(jwt.getSubject());
-        req.setMenteeId(menteeId);
         req.setDailyPlanId(dailyPlanId);
 
         // 즉시 갱신 용도, ID 기준으로 추가 GET 호출 없이 화면에 반영
-        DailyCommentRes res = dailyPlanService.updateComment(req);
+        DailyCommentRes res = dailyPlanService.updateComment(req, menteeId);
         return ResponseEntity.ok(res);
     }
 }
