@@ -51,10 +51,9 @@ public class MenteeService implements UserService{
     }
 
     @Transactional(readOnly = true)
-    public List<MenteeSummaryResponse> listMenteesByMentorAccount(String accountId) {
-        Mentor mentor = mentorRepository.findByAccount_AccountId(accountId)
-                .orElseThrow(() -> new PlannerResourceNotFoundException("멘토를 찾을 수 없습니다. accountId=" + accountId));
-        return menteeRepository.findByMentorId_MentorId(mentor.getMentorId()).stream()
+    public List<MenteeSummaryResponse> listMenteesByMentorAccount(Long mentorId) {
+
+        return menteeRepository.findByMentorId_MentorId(mentorId).stream()
                 .map(mentee -> MenteeSummaryResponse.builder()
                         .menteeId(mentee.getMenteeId())
                         .accountId(mentee.getAccount() != null ? mentee.getAccount().getAccountId() : null)

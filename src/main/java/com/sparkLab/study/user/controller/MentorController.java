@@ -2,6 +2,7 @@ package com.sparkLab.study.user.controller;
 
 import com.sparkLab.study.user.dto.MenteeActiveLevelResponse;
 import com.sparkLab.study.user.dto.MenteeActiveLevelUpdateRequest;
+import com.sparkLab.study.user.dto.MenteeSummaryResponse;
 import com.sparkLab.study.user.service.MenteeService;
 import com.sparkLab.study.user.service.MentorService;
 import jakarta.validation.Valid;
@@ -12,23 +13,24 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/mentees")
-@RequiredArgsConstructor
-public class MenteeController {
+import java.util.List;
 
-    private final MenteeService menteeService;
+
+@RestController
+@RequestMapping("/mentors")
+@RequiredArgsConstructor
+public class MentorController {
+
     private final MentorService mentorService;
+    private final MenteeService menteeService;
+
 
     @PreAuthorize("hasRole('MENTOR')")
-        @PutMapping("/{menteeId}/active-level")
-    public ResponseEntity<MenteeActiveLevelResponse> updateActiveLevel(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long menteeId,
-            @RequestBody @Valid MenteeActiveLevelUpdateRequest request
-    ) {
+    @GetMapping("/me/mentees")
+    public ResponseEntity<List<MenteeSummaryResponse>> listMenteesByMentor(@AuthenticationPrincipal Jwt jwt) {
         Long mentorId = mentorService.accountToUser(jwt.getSubject());
-        MenteeActiveLevelResponse response = menteeService.updateActiveLevelByMentor(mentorId, menteeId, request);
+        List<MenteeSummaryResponse> response = menteeService.listMenteesByMentorAccount(mentorId);
         return ResponseEntity.ok(response);
     }
+
 }
