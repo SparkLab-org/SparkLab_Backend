@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sparkLab.study.constant.Subject;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,8 +47,8 @@ public class FeedbackService {
                 .mentee(mentee)
                 .todoItem(todoItem)
                 .targetDate(request.getTargetDate())
-                .isImportant(request.getIsImportant())
-                .summary(resolveSummary(request.getIsImportant(), request.getContent(), request.getSummary()))
+                .subject(request.getSubject())
+                .summary(resolveSummary(request.getContent(), null))
                 .content(request.getContent())
                 .build();
         Feedback saved = feedbackRepository.save(feedback);
@@ -56,7 +57,7 @@ public class FeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeedbackResponse> list(Long menteeId, Long mentorId, Long todoItemId) {
+    public List<FeedbackResponse> list(Long menteeId, Long mentorId, Long todoItemId, Subject subject) {
         List<Feedback> feedbacks;
         if (todoItemId != null) {
             feedbacks = feedbackRepository.findByTodoItem_TodoItemIdOrderByCreateTimeAsc(todoItemId);
@@ -67,7 +68,10 @@ public class FeedbackService {
         } else {
             feedbacks = feedbackRepository.findAllByOrderByCreateTimeAsc();
         }
-        return feedbacks.stream().map(this::toResponse).collect(Collectors.toList());
+        return feedbacks.stream()
+                .filter(feedback -> subject == null || subject == feedback.getSubject())
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -84,12 +88,11 @@ public class FeedbackService {
             feedback.setTodoItem(todoItem);
         }
         if (request.getTargetDate() != null) feedback.setTargetDate(request.getTargetDate());
-        if (request.getIsImportant() != null) feedback.setIsImportant(request.getIsImportant());
+        if (request.getSubject() != null) feedback.setSubject(request.getSubject());
         if (request.getContent() != null) feedback.setContent(request.getContent());
         feedback.setSummary(resolveSummary(
-                feedback.getIsImportant(),
                 feedback.getContent(),
-                request.getSummary() != null ? request.getSummary() : feedback.getSummary()
+                feedback.getImportantComment()
         ));
         return toResponse(feedbackRepository.save(feedback));
     }
@@ -113,23 +116,29 @@ public class FeedbackService {
                 .menteeId(feedback.getMentee().getMenteeId())
                 .todoItemId(todoItemId)
                 .targetDate(feedback.getTargetDate())
-                .isImportant(feedback.getIsImportant())
+                .subject(feedback.getSubject())
                 .summary(feedback.getSummary())
+                .importantComment(feedback.getImportantComment())
                 .content(feedback.getContent())
                 .createTime(feedback.getCreateTime())
                 .updateTime(feedback.getUpdateTime())
                 .build();
     }
 
-    private String resolveSummary(Boolean isImportant, String content, String fallbackSummary) {
-        if (Boolean.TRUE.equals(isImportant)) {
-            return "중요";
+    @Transactional
+    public FeedbackResponse updateImportantComment(Long feedbackId, String importantComment) {
+        Feedback feedback = findFeedback(feedbackId);
+        String normalized = normalizeImportantComment(importantComment);
+        feedback.setImportantComment(normalized);
+        feedback.setSummary(resolveSummary(feedback.getContent(), feedback.getImportantComment()));
+        return toResponse(feedbackRepository.save(feedback));
+    }
+
+    private String resolveSummary(String content, String importantComment) {
+        if (!isBlank(importantComment)) {
+            return importantComment.trim();
         }
-        String autoSummary = extractSummaryFromContent(content);
-        if (autoSummary == null || autoSummary.isBlank()) {
-            return fallbackSummary;
-        }
-        return autoSummary;
+        return extractSummaryFromContent(content);
     }
 
     private String extractSummaryFromContent(String content) {
@@ -141,9 +150,18 @@ public class FeedbackService {
             return "";
         }
         String[] sentences = normalized.split("(?<=[.!?])\\s+");
-        if (sentences.length == 1) {
-            return sentences[0];
+        return sentences[0];
+    }
+
+    private String normalizeImportantComment(String value) {
+        if (value == null) {
+            return null;
         }
-        return sentences[0] + " " + sentences[1];
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

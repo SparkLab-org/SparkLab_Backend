@@ -2,6 +2,7 @@ package com.sparkLab.study.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.sparkLab.study.constant.Subject;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,8 +18,12 @@ public class Feedback extends BaseTime{
     private Long feedbackId;
 
     private LocalDateTime targetDate;
-    private Boolean isImportant;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Subject subject;
+
     private String summary;
+    private String importantComment;
 
     @Lob
     private String content;

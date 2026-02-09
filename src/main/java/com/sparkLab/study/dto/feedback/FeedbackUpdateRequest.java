@@ -1,5 +1,6 @@
 package com.sparkLab.study.dto.feedback;
 
+import com.sparkLab.study.constant.Subject;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -15,9 +16,7 @@ public class FeedbackUpdateRequest {
 
     private LocalDateTime targetDate;
 
-    private Boolean isImportant;
-
-    private String summary;
+    private Subject subject;
 
     private String content;
 }

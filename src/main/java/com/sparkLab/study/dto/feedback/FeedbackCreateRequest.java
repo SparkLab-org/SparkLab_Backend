@@ -1,5 +1,6 @@
 package com.sparkLab.study.dto.feedback;
 
+import com.sparkLab.study.constant.Subject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -23,10 +24,8 @@ public class FeedbackCreateRequest {
 
     private LocalDateTime targetDate;
 
-    private Boolean isImportant;
-
-    @NotBlank(message = "summary는 필수입니다")
-    private String summary;
+    @NotNull(message = "subject는 필수입니다")
+    private Subject subject;
 
     @NotBlank(message = "content는 필수입니다")
     private String content;

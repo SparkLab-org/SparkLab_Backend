@@ -1,6 +1,7 @@
 package com.sparkLab.study.controller;
 
 import com.sparkLab.study.dto.feedback.FeedbackCreateRequest;
+import com.sparkLab.study.dto.feedback.FeedbackImportantUpdateRequest;
 import com.sparkLab.study.dto.feedback.FeedbackResponse;
 import com.sparkLab.study.dto.feedback.FeedbackUpdateRequest;
 import com.sparkLab.study.service.FeedbackService;
@@ -32,8 +33,9 @@ public class FeedbackController {
     public List<FeedbackResponse> list(
             @RequestParam(required = false) Long menteeId,
             @RequestParam(required = false) Long mentorId,
-            @RequestParam(required = false) Long todoItemId) {
-        return feedbackService.list(menteeId, mentorId, todoItemId);
+            @RequestParam(required = false) Long todoItemId,
+            @RequestParam(required = false) com.sparkLab.study.constant.Subject subject) {
+        return feedbackService.list(menteeId, mentorId, todoItemId, subject);
     }
 
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
@@ -48,6 +50,14 @@ public class FeedbackController {
             @PathVariable Long feedbackId,
             @RequestBody FeedbackUpdateRequest request) {
         return feedbackService.update(feedbackId, request);
+    }
+
+    @PreAuthorize("hasRole('MENTOR')")
+    @PutMapping("/{feedbackId}/important")
+    public FeedbackResponse updateImportantComment(
+            @PathVariable Long feedbackId,
+            @RequestBody FeedbackImportantUpdateRequest request) {
+        return feedbackService.updateImportantComment(feedbackId, request.getImportantComment());
     }
 
     @PreAuthorize("hasRole('MENTOR')")
