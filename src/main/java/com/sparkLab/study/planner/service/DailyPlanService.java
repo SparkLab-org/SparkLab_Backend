@@ -48,10 +48,10 @@ public class DailyPlanService {
     // 선언적 접근 제어, 즉시 권한 검증 예외처리
     @Transactional
     // 보안과 도메인 분리보다 조회 최소 쿼리 우선시, 이미 menteeId 자체가 해당 도메인에 맞게 설계되었음.
-    public DailyCommentRes updateComment(DailyCommentReq req, Long menteeId) {
+    public DailyCommentRes updateComment(DailyCommentReq req, Long menteeId, Long dailyPlanId) {
 
-        DailyPlan dailyPlan = dailyPlanRepository.findById(req.getDailyPlanId())
-                .orElseThrow(() -> new ParentResourceNotFoundException("DailyPlan", req.getDailyPlanId()));
+        DailyPlan dailyPlan = dailyPlanRepository.findById(dailyPlanId)
+                .orElseThrow(() -> new ParentResourceNotFoundException("DailyPlan", dailyPlanId));
 
         if (!dailyPlan.getMentee().getMenteeId().equals(menteeId)) {
             throw new NotOwnerException("DailyPlan", dailyPlan.getDailyPlanId());
@@ -59,7 +59,7 @@ public class DailyPlanService {
 
         dailyPlan.updateComment(req.getComment());
 
-        // dailyPlanRepository.save(dailyPlan);
+        dailyPlanRepository.save(dailyPlan);
 
         return DailyCommentRes.builder()
                 .dailyPlanId(dailyPlan.getDailyPlanId())

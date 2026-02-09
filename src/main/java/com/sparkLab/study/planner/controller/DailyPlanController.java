@@ -48,10 +48,8 @@ public class DailyPlanController {
                                                          @AuthenticationPrincipal Jwt jwt) {
 
         Long menteeId = menteeService.accountToUser(jwt.getSubject());
-        req.setDailyPlanId(dailyPlanId);
-
         // 즉시 갱신 용도, ID 기준으로 추가 GET 호출 없이 화면에 반영
-        DailyCommentRes res = dailyPlanService.updateComment(req, menteeId);
+        DailyCommentRes res = dailyPlanService.updateComment(req, menteeId, dailyPlanId);
         return ResponseEntity.ok(res);
     }
 }
