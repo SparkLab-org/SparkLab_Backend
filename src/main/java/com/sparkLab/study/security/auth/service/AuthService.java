@@ -2,6 +2,7 @@ package com.sparkLab.study.security.auth.service;
 
 import com.sparkLab.study.common.exception.BusinessException;
 import com.sparkLab.study.security.auth.entity.Account;
+import com.sparkLab.study.security.auth.exception.AccountNotFoundException;
 import com.sparkLab.study.security.auth.repository.AccountRepository;
 import com.sparkLab.study.security.auth.dto.AccessToken;
 import com.sparkLab.study.security.auth.dto.SignInReq;
@@ -23,7 +24,7 @@ public class AuthService {
 
     public AccessToken signIn(SignInReq signInReq) {
         Account account = accountRepository.findById(signInReq.accountId())
-                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Account를 찾을 수 없습니다.")
+                .orElseThrow(() -> new AccountNotFoundException(signInReq.accountId())
                 );
 
         String accessToken = tokenService.issueToken(account.getAccountId(), account.getRole());

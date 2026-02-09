@@ -10,11 +10,10 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "planners",
+        name = "dailyPlans",
         uniqueConstraints = @UniqueConstraint(columnNames = {"mentee_id", "plan_date"})
 )
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -37,6 +36,10 @@ public class DailyPlan extends BaseTime {
     @OneToMany(mappedBy = "dailyPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<TodoItem> todoItems = new ArrayList<>();
+
+    public void updateComment(String comment) {
+        this.comment = comment;
+    }
 
 
 }

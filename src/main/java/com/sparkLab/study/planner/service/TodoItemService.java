@@ -2,14 +2,14 @@ package com.sparkLab.study.planner.service;
 
 import com.sparkLab.study.activity.service.NotificationService;
 import com.sparkLab.study.planner.entity.DailyPlan;
+import com.sparkLab.study.planner.exception.PlannerFixedTodoException;
+import com.sparkLab.study.planner.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.planner.repository.DailyPlanRepository;
 import com.sparkLab.study.planner.repository.TodoItemRepository;
 import com.sparkLab.study.planner.dto.TodoItemCreateRequest;
 import com.sparkLab.study.planner.dto.TodoItemResponse;
 import com.sparkLab.study.planner.dto.TodoItemUpdateRequest;
 import com.sparkLab.study.planner.entity.TodoItem;
-import com.sparkLab.study.common.exception.PlannerFixedTodoException;
-import com.sparkLab.study.common.exception.PlannerResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,5 +1,6 @@
 package com.sparkLab.study.task.service;
 
+import com.sparkLab.study.planner.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.task.dto.feedback.FeedbackCreateRequest;
 import com.sparkLab.study.task.dto.feedback.FeedbackResponse;
 import com.sparkLab.study.task.dto.feedback.FeedbackUpdateRequest;
@@ -8,7 +9,6 @@ import com.sparkLab.study.task.entity.Feedback;
 import com.sparkLab.study.user.entity.Mentee;
 import com.sparkLab.study.user.entity.Mentor;
 import com.sparkLab.study.planner.entity.TodoItem;
-import com.sparkLab.study.common.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.task.exception.TaskResourceNotFoundException;
 import com.sparkLab.study.user.repository.MenteeRepository;
 import com.sparkLab.study.user.repository.MentorRepository;
