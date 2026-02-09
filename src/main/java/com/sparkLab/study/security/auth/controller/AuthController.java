@@ -42,4 +42,11 @@ public class AuthController {
 
         return response;
     }
+
+    @PostMapping("/signout")
+    public ResponseEntity<Void> signOut(@AuthenticationPrincipal Jwt jwt) {
+        String accountId = jwt.getSubject();
+        authService.signOut(accountId);
+        return ResponseEntity.ok().build();
+    }
 }

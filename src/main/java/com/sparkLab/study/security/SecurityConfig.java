@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/signin").permitAll()
+                        .requestMatchers("/auth/signout").authenticated()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/error").permitAll()
                         .requestMatchers("/dailyPlan", "/dailyPlan/**").authenticated()
                         .anyRequest().permitAll()

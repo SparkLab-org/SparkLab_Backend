@@ -1,17 +1,15 @@
 package com.sparkLab.study.security.auth.service;
 
-import com.sparkLab.study.common.exception.BusinessException;
+import com.sparkLab.study.security.auth.constant.SignStatus;
 import com.sparkLab.study.security.auth.entity.Account;
 import com.sparkLab.study.security.auth.exception.AccountNotFoundException;
 import com.sparkLab.study.security.auth.repository.AccountRepository;
 import com.sparkLab.study.security.auth.dto.AccessToken;
 import com.sparkLab.study.security.auth.dto.SignInReq;
 import com.sparkLab.study.security.jwt.TokenService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -32,4 +30,13 @@ public class AuthService {
         return new AccessToken(accessToken);
     }
 
+    @Transactional
+    public void signOut(String accountId) {
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException(accountId));
+
+        account.changeSignStatus(SignStatus.SIGN_OUT);
+        log.info("Account {} signed out", accountId);
+    }
 }
