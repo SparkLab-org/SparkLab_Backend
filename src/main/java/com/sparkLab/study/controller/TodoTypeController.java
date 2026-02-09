@@ -41,6 +41,14 @@ public class TodoTypeController {
     }
 
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @GetMapping("/assignments/date/{planDate}")
+    public List<TodoItemResponse> listAssignmentsByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate planDate,
+            @RequestParam(required = false) Subject subject) {
+        return todoItemService.listByPlanDateAndType(planDate, "ASSIGNMENT", subject);
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @GetMapping("/studies")
     public List<TodoItemResponse> listStudies(
             @RequestParam(required = false) Long plannerId,
@@ -53,6 +61,14 @@ public class TodoTypeController {
             return todoItemService.listByPlanDateAndType(planDate, "STUDY", subject);
         }
         throw new IllegalArgumentException("plannerId 또는 planDate 중 하나는 필수입니다.");
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @GetMapping("/studies/date/{planDate}")
+    public List<TodoItemResponse> listStudiesByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate planDate,
+            @RequestParam(required = false) Subject subject) {
+        return todoItemService.listByPlanDateAndType(planDate, "STUDY", subject);
     }
 
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
