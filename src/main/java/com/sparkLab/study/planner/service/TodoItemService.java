@@ -109,7 +109,7 @@ public class TodoItemService {
         }
         TodoItem todo = TodoItem.builder()
                 .mentee(dailyPlan.getMentee())
-                .mentor(isFixed ? dailyPlan.getMentee().getMentorId() : null)
+                .mentor(isFixed ? dailyPlan.getMentee().getMentor() : null)
                 .dailyPlan(dailyPlan)
                 .targetDate(request.getTargetDate() != null ? request.getTargetDate() : dailyPlan.getPlanDate())
                 .title(request.getTitle())

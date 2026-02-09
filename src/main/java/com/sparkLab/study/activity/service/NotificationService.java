@@ -281,7 +281,7 @@ public class NotificationService {
     private Account resolveMentorAccount(Assignment assignment, Mentee mentee) {
         Mentor mentor = assignment == null ? null : assignment.getMentor();
         if (mentor == null && mentee != null) {
-            mentor = mentee.getMentorId();
+            mentor = mentee.getMentor();
         }
         if (mentor == null) {
             return null;
