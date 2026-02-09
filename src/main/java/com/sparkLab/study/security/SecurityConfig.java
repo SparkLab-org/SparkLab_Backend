@@ -30,7 +30,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // 필요 시 수정
+                        .requestMatchers("/dailyPlan", "/dailyPlan/**").authenticated()
+                        .requestMatchers("/auth/signin").permitAll()
+                        .requestMatchers("/v3/api-docs", "/swagger-ui/**", "/error").permitAll()
+                        .anyRequest().permitAll()
                         
 
 
