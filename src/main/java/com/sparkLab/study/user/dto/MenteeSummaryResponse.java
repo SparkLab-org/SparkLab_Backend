@@ -1,6 +1,7 @@
-package com.sparkLab.study.dto.mentee;
+package com.sparkLab.study.user.dto;
 
-import com.sparkLab.study.constant.ActiveLevel;
+
+import com.sparkLab.study.user.constant.ActiveLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
