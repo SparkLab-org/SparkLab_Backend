@@ -1,4 +1,4 @@
-package com.sparkLab.study.planner.dto;
+package com.sparkLab.study.planner.dto.dailyPlan;
 
 import lombok.Builder;
 import lombok.Getter;

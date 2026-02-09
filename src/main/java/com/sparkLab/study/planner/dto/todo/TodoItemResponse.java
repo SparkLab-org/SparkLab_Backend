@@ -1,4 +1,4 @@
-package com.sparkLab.study.planner.dto;
+package com.sparkLab.study.planner.dto.todo;
 
 import com.sparkLab.study.common.constant.Subject;
 import lombok.*;

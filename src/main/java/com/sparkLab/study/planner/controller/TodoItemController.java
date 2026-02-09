@@ -1,9 +1,9 @@
 package com.sparkLab.study.planner.controller;
 
 import com.sparkLab.study.planner.service.TodoItemService;
-import com.sparkLab.study.planner.dto.TodoItemCreateRequest;
-import com.sparkLab.study.planner.dto.TodoItemResponse;
-import com.sparkLab.study.planner.dto.TodoItemUpdateRequest;
+import com.sparkLab.study.planner.dto.todo.TodoItemCreateRequest;
+import com.sparkLab.study.planner.dto.todo.TodoItemResponse;
+import com.sparkLab.study.planner.dto.todo.TodoItemUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("todos")
+@RequestMapping("/todos")
 @RequiredArgsConstructor
 public class TodoItemController {
 

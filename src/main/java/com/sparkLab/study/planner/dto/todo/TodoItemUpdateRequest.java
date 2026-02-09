@@ -1,27 +1,25 @@
-package com.sparkLab.study.planner.dto;
+package com.sparkLab.study.planner.dto.todo;
 
 import com.sparkLab.study.common.constant.Subject;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TodoItemCreateRequest {
+public class TodoItemUpdateRequest {
 
-    @NotNull(message = "plannerId는 필수입니다")
-    private Long plannerId;
-
-    @NotBlank(message = "제목은 필수입니다")
     private String title;
-
     private LocalDate targetDate;
     private Subject subject;
     private String type;
+    private String status;
     private Integer plannedMinutes;
+    private Integer actualMinutes;
+    private Integer actualSeconds;
+    private LocalDateTime completedAt;
 }
