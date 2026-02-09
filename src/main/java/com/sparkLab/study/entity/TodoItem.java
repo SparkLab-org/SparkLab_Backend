@@ -33,6 +33,9 @@ public class TodoItem extends BaseTime{
     private String title;
     private Subject subject;
     private String type;
+    private String goal;
+    private String materialType;
+    private String materialUrl;
     private Boolean isFixed;
     private String status;
     private Integer plannedMinutes;

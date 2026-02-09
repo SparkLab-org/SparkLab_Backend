@@ -17,6 +17,9 @@ public class TodoItemUpdateRequest {
     private LocalDate targetDate;
     private Subject subject;
     private String type;
+    private String goal;
+    private String materialType;
+    private String materialUrl;
     private String status;
     private Integer plannedMinutes;
     private Integer actualMinutes;

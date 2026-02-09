@@ -10,11 +10,20 @@ import com.sparkLab.study.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.repository.PlannerRepository;
 import com.sparkLab.study.repository.TodoItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,22 +34,69 @@ public class TodoItemService {
     private final PlannerRepository plannerRepository;
     private final NotificationService notificationService;
 
+    @Value("${app.upload-dir:uploads}")
+    private String uploadDir;
+
     // 할일 생성
     @Transactional
     public TodoItemResponse create(TodoItemCreateRequest request) {
-        return createTodo(request, false);
+        return createTodo(request, false, null, null);
     }
 
     // 고정 할일 생성
     @Transactional
     public TodoItemResponse createFixed(TodoItemCreateRequest request) {
-        return createTodo(request, true);
+        return createTodo(request, true, null, null);
+    }
+
+    // 할일 생성 (학습지 포함)
+    @Transactional
+    public TodoItemResponse createWithMaterial(TodoItemCreateRequest request, MultipartFile materialFile) {
+        return createTodo(request, false, materialFile, null);
+    }
+
+    // 고정 할일 생성 (학습지 포함)
+    @Transactional
+    public TodoItemResponse createFixedWithMaterial(TodoItemCreateRequest request, MultipartFile materialFile) {
+        return createTodo(request, true, materialFile, null);
+    }
+
+    @Transactional
+    public TodoItemResponse createAssignment(TodoItemCreateRequest request, MultipartFile materialFile) {
+        requireSubject(request);
+        return createTodo(request, false, materialFile, "ASSIGNMENT");
+    }
+
+    @Transactional
+    public TodoItemResponse createFixedAssignment(TodoItemCreateRequest request, MultipartFile materialFile) {
+        requireSubject(request);
+        return createTodo(request, true, materialFile, "ASSIGNMENT");
+    }
+
+    @Transactional
+    public TodoItemResponse createStudy(TodoItemCreateRequest request, MultipartFile materialFile) {
+        requireSubject(request);
+        return createTodo(request, false, materialFile, "STUDY");
+    }
+
+    @Transactional
+    public TodoItemResponse createFixedStudy(TodoItemCreateRequest request, MultipartFile materialFile) {
+        requireSubject(request);
+        return createTodo(request, true, materialFile, "STUDY");
     }
 
     // 플래너 기준 할일 목록 
     @Transactional(readOnly = true)
     public List<TodoItemResponse> listByPlannerId(Long plannerId) {
         return todoItemRepository.findByPlanner_PlannerIdOrderByCreateTimeAsc(plannerId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TodoItemResponse> listByPlannerIdAndType(Long plannerId, String type, com.sparkLab.study.constant.Subject subject) {
+        return todoItemRepository.findByPlanner_PlannerIdAndTypeOrderByCreateTimeAsc(plannerId, type).stream()
+                .filter(todo -> subject == null || subject == todo.getSubject())
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -53,10 +109,27 @@ public class TodoItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<TodoItemResponse> listByPlanDateAndType(LocalDate planDate, String type, com.sparkLab.study.constant.Subject subject) {
+        return todoItemRepository.findByPlanner_PlanDateAndTypeOrderByCreateTimeAsc(planDate, type).stream()
+                .filter(todo -> subject == null || subject == todo.getSubject())
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     // 할일 단건 조회 
     @Transactional(readOnly = true)
     public TodoItemResponse getOne(Long todoItemId) {
         TodoItem todo = findTodo(todoItemId);
+        return toResponse(todo);
+    }
+
+    @Transactional(readOnly = true)
+    public TodoItemResponse getOneByType(Long todoItemId, String type) {
+        TodoItem todo = findTodo(todoItemId);
+        if (!type.equals(todo.getType())) {
+            throw new PlannerResourceNotFoundException("할일 타입이 일치하지 않습니다. todoItemId=" + todoItemId);
+        }
         return toResponse(todo);
     }
 
@@ -67,6 +140,20 @@ public class TodoItemService {
         if (Boolean.TRUE.equals(todo.getIsFixed())) {
             throw new PlannerFixedTodoException();
         }
+        applyUpdate(todo, request);
+        return toResponse(todoItemRepository.save(todo));
+    }
+
+    @Transactional
+    public TodoItemResponse updateByType(Long todoItemId, String type, TodoItemUpdateRequest request, boolean allowFixed) {
+        TodoItem todo = findTodo(todoItemId);
+        if (!type.equals(todo.getType())) {
+            throw new PlannerResourceNotFoundException("할일 타입이 일치하지 않습니다. todoItemId=" + todoItemId);
+        }
+        if (!allowFixed && Boolean.TRUE.equals(todo.getIsFixed())) {
+            throw new PlannerFixedTodoException();
+        }
+        request.setType(type);
         applyUpdate(todo, request);
         return toResponse(todoItemRepository.save(todo));
     }
@@ -89,6 +176,18 @@ public class TodoItemService {
         todoItemRepository.delete(todo);
     }
 
+    @Transactional
+    public void deleteByType(Long todoItemId, String type, boolean allowFixed) {
+        TodoItem todo = findTodo(todoItemId);
+        if (!type.equals(todo.getType())) {
+            throw new PlannerResourceNotFoundException("할일 타입이 일치하지 않습니다. todoItemId=" + todoItemId);
+        }
+        if (!allowFixed && Boolean.TRUE.equals(todo.getIsFixed())) {
+            throw new PlannerFixedTodoException();
+        }
+        todoItemRepository.delete(todo);
+    }
+
     // 고정 할일 삭제
     @Transactional
     public void deleteFixed(Long todoItemId) {
@@ -101,7 +200,7 @@ public class TodoItemService {
                 .orElseThrow(() -> new PlannerResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + todoItemId));
     }
 
-    private TodoItemResponse createTodo(TodoItemCreateRequest request, boolean isFixed) {
+    private TodoItemResponse createTodo(TodoItemCreateRequest request, boolean isFixed, MultipartFile materialFile, String forcedType) {
         Planner planner = plannerRepository.findById(request.getPlannerId())
                 .orElseThrow(() -> new PlannerResourceNotFoundException("플래너를 찾을 수 없습니다. plannerId=" + request.getPlannerId()));
         if (planner.getMentee() == null) {
@@ -114,12 +213,21 @@ public class TodoItemService {
                 .targetDate(request.getTargetDate() != null ? request.getTargetDate() : planner.getPlanDate())
                 .title(request.getTitle())
                 .subject(request.getSubject())
-                .type(request.getType())
+                .type(forcedType != null ? forcedType : request.getType())
+                .goal(request.getGoal())
+                .materialType(resolveMaterialType(request, materialFile))
+                .materialUrl(resolveMaterialUrl(request, materialFile))
                 .isFixed(isFixed)
                 .status("TODO")
                 .plannedMinutes(request.getPlannedMinutes())
                 .build();
         todo = todoItemRepository.save(todo);
+        if (materialFile != null && !materialFile.isEmpty()) {
+            String materialUrl = storeMaterialFile(todo.getTodoItemId(), materialFile);
+            todo.setMaterialUrl(materialUrl);
+            todo.setMaterialType("PDF");
+            todo = todoItemRepository.save(todo);
+        }
         notificationService.notifyNewTodo(todo);
         return toResponse(todo);
     }
@@ -129,6 +237,9 @@ public class TodoItemService {
         if (request.getTargetDate() != null) todo.setTargetDate(request.getTargetDate());
         if (request.getSubject() != null) todo.setSubject(request.getSubject());
         if (request.getType() != null) todo.setType(request.getType());
+        if (request.getGoal() != null) todo.setGoal(request.getGoal());
+        if (request.getMaterialType() != null) todo.setMaterialType(request.getMaterialType());
+        if (request.getMaterialUrl() != null) todo.setMaterialUrl(request.getMaterialUrl());
         if (request.getStatus() != null) todo.setStatus(request.getStatus());
         if (request.getPlannedMinutes() != null) todo.setPlannedMinutes(request.getPlannedMinutes());
         if (request.getActualMinutes() != null) todo.setActualMinutes(request.getActualMinutes());
@@ -145,6 +256,9 @@ public class TodoItemService {
                 .title(todo.getTitle())
                 .subject(todo.getSubject())
                 .type(todo.getType())
+                .goal(todo.getGoal())
+                .materialType(todo.getMaterialType())
+                .materialUrl(todo.getMaterialUrl())
                 .isFixed(todo.getIsFixed())
                 .status(todo.getStatus())
                 .plannedMinutes(todo.getPlannedMinutes())
@@ -154,5 +268,74 @@ public class TodoItemService {
                 .createTime(todo.getCreateTime())
                 .updateTime(todo.getUpdateTime())
                 .build();
+    }
+
+    private void requireSubject(TodoItemCreateRequest request) {
+        if (request.getSubject() == null) {
+            throw new IllegalArgumentException("과목은 필수입니다.");
+        }
+    }
+
+    private String resolveMaterialType(TodoItemCreateRequest request, MultipartFile materialFile) {
+        if (materialFile != null && !materialFile.isEmpty()) {
+            return "PDF";
+        }
+        if (request.getMaterialType() != null) {
+            return request.getMaterialType();
+        }
+        return request.getMaterialUrl() != null ? "COLUMN" : null;
+    }
+
+    private String resolveMaterialUrl(TodoItemCreateRequest request, MultipartFile materialFile) {
+        if (materialFile != null && !materialFile.isEmpty()) {
+            return null;
+        }
+        return request.getMaterialUrl();
+    }
+
+    private String storeMaterialFile(Long todoItemId, MultipartFile file) {
+        validateMaterialFile(file);
+        String extension = getExtension(file.getOriginalFilename());
+        String filename = UUID.randomUUID() + (extension.isEmpty() ? "" : "." + extension);
+        Path uploadPath = Paths.get(uploadDir, "todos", String.valueOf(todoItemId));
+        createDirectories(uploadPath);
+        Path targetPath = uploadPath.resolve(filename).normalize();
+        try {
+            Files.copy(file.getInputStream(), targetPath);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("학습지 파일 저장에 실패했습니다.");
+        }
+        return "/uploads/todos/" + todoItemId + "/" + filename;
+    }
+
+    private void validateMaterialFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("학습지 파일은 필수입니다.");
+        }
+        String contentType = file.getContentType();
+        String extension = getExtension(file.getOriginalFilename());
+        if ((contentType != null && !"application/pdf".equals(contentType))
+                && !"pdf".equals(extension)) {
+            throw new IllegalArgumentException("학습지 파일은 PDF만 업로드할 수 있습니다.");
+        }
+    }
+
+    private String getExtension(String filename) {
+        if (!StringUtils.hasText(filename)) {
+            return "";
+        }
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot < 0 || lastDot == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(lastDot + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private void createDirectories(Path path) {
+        try {
+            Files.createDirectories(path);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("업로드 경로를 생성할 수 없습니다.");
+        }
     }
 }

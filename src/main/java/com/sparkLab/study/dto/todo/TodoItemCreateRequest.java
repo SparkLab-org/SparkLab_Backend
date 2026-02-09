@@ -23,5 +23,8 @@ public class TodoItemCreateRequest {
     private LocalDate targetDate;
     private Subject subject;
     private String type;
+    private String goal;
+    private String materialType;
+    private String materialUrl;
     private Integer plannedMinutes;
 }
