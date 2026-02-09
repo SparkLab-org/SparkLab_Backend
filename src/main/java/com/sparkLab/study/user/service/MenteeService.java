@@ -1,19 +1,34 @@
 package com.sparkLab.study.user.service;
 
+import com.sparkLab.study.common.service.UserService;
+import com.sparkLab.study.planner.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.user.dto.MenteeActiveLevelResponse;
 import com.sparkLab.study.user.dto.MenteeActiveLevelUpdateRequest;
 import com.sparkLab.study.user.entity.Mentee;
-import com.sparkLab.study.common.exception.PlannerResourceNotFoundException;
+import com.sparkLab.study.user.exception.UserNotFoundException;
 import com.sparkLab.study.user.repository.MenteeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class MenteeService {
+public class MenteeService implements UserService {
 
     private final MenteeRepository menteeRepository;
+
+    @Cacheable(
+            cacheNames = "accountToMentee",
+            key = "#accountId"
+    )
+    @Transactional(readOnly = true)
+    public Long accountToUser(String accountId) {
+
+        return menteeRepository.findMenteeIdByAccount_AccountId(accountId)
+                .orElseThrow(UserNotFoundException::new).getMenteeId();
+    }
+
 
     @Transactional
     public MenteeActiveLevelResponse updateActiveLevelByMentor(Long mentorId, Long menteeId, MenteeActiveLevelUpdateRequest request) {

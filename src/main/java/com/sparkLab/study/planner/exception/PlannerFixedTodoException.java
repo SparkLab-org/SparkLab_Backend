@@ -1,4 +1,4 @@
-package com.sparkLab.study.common.exception;
+package com.sparkLab.study.planner.exception;
 
 public class PlannerFixedTodoException extends RuntimeException {
 

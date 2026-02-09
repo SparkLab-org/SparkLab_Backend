@@ -1,12 +1,9 @@
 package com.sparkLab.study.common.exception;
 
-import com.sparkLab.study.task.exception.TaskResourceNotFoundException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,25 +11,11 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(PlannerFixedTodoException.class)
-    public ResponseEntity<Map<String, String>> handlePlannerFixedTodo(PlannerFixedTodoException e) {
-        Map<String, String> body = new HashMap<>();
-        body.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
-    }
-
-    @ExceptionHandler(TaskResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleTaskNotFound(TaskResourceNotFoundException e) {
-        Map<String, String> body = new HashMap<>();
-        body.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
-    }
-
-    @ExceptionHandler(PlannerResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handlePlannerNotFound(PlannerResourceNotFoundException e) {
-        Map<String, String> body = new HashMap<>();
-        body.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
+        return ResponseEntity
+                .status(e.status())
+                .body(new ErrorResponse(e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
