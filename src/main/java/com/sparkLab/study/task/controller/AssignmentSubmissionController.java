@@ -13,13 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@RestController@RequestMapping("assignments")
+@RestController@RequestMapping("/assignments")
 @RequiredArgsConstructor
 public class AssignmentSubmissionController {
 
     private final AssignmentSubmissionService submissionService;
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @PostMapping(value = "/{assignmentId}/submissions",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AssignmentSubmissionBatchResponse> submit(
@@ -31,7 +30,6 @@ public class AssignmentSubmissionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @PutMapping(value = "/{assignmentId}/submissions/{submissionId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AssignmentSubmissionResponse> update(
@@ -43,7 +41,6 @@ public class AssignmentSubmissionController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @DeleteMapping("/{assignmentId}/submissions/{submissionId}")
     public ResponseEntity<Void> delete(
             @PathVariable Long assignmentId,
@@ -52,7 +49,6 @@ public class AssignmentSubmissionController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @DeleteMapping("/{assignmentId}/submissions/{submissionId}/comment")
     public ResponseEntity<AssignmentSubmissionResponse> deleteComment(
             @PathVariable Long assignmentId,
