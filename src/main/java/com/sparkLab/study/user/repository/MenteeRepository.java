@@ -11,6 +11,6 @@ public interface MenteeRepository extends JpaRepository<Mentee, Long> {
 
     Optional<Mentee> findMenteeIdByAccount_AccountId(String accountId);
 
-    List<Mentee> findByMentorId_MentorId(Long mentorId);
+    List<Mentee> findByMentor_MentorId(Long mentorId);
 
 }

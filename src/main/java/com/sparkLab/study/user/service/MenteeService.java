@@ -39,7 +39,7 @@ public class MenteeService implements UserService{
     public MenteeActiveLevelResponse updateActiveLevelByMentor(Long mentorId, Long menteeId, MenteeActiveLevelUpdateRequest request) {
         Mentee mentee = menteeRepository.findById(menteeId)
                 .orElseThrow(() -> new PlannerResourceNotFoundException("멘티를 찾을 수 없습니다. menteeId=" + menteeId));
-        if (mentee.getMentorId() == null || !mentee.getMentorId().getMentorId().equals(mentorId)) {
+        if (mentee.getMentor() == null || !mentee.getMentor().getMentorId().equals(mentorId)) {
             throw new PlannerResourceNotFoundException("해당 멘티는 해당 멘토 소속이 아닙니다.");
         }
         mentee.setActiveLevel(request.getActiveLevel());
@@ -53,7 +53,7 @@ public class MenteeService implements UserService{
     @Transactional(readOnly = true)
     public List<MenteeSummaryResponse> listMenteesByMentorAccount(Long mentorId) {
 
-        return menteeRepository.findByMentorId_MentorId(mentorId).stream()
+        return menteeRepository.findByMentor_MentorId(mentorId).stream()
                 .map(mentee -> MenteeSummaryResponse.builder()
                         .menteeId(mentee.getMenteeId())
                         .accountId(mentee.getAccount() != null ? mentee.getAccount().getAccountId() : null)

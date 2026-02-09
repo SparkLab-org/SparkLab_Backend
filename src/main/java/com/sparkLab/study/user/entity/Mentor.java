@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,8 +34,8 @@ public class Mentor {
     private Subject subject;
 
     // 멘토는 멘티를 거쳐서
-    @OneToMany(mappedBy = "mentorId", fetch = FetchType.LAZY)
-    private List<Mentee> mentees;
+    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL)
+    private List<Mentee> mentees = new ArrayList<>();
 
     @OneToMany(mappedBy = "feedbackId", fetch = FetchType.LAZY)
     private List<Feedback> feedback;

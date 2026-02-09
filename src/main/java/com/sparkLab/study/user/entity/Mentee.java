@@ -24,15 +24,16 @@ public class Mentee {
     @Column(name = "menteeId")
     private Long menteeId;
 
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "accountId")
+    @JoinColumn(name = "accountId", unique = true)
     private Account account;
 
     // <기획안 필수기능 요구사항>
     // 한 명의 멘토가 최대 11명의 멘티 담당 1:N구조
-    @ManyToOne
-    @JoinColumn(name = "mentorId", referencedColumnName = "mentorId")
-    private Mentor mentorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mentorId")
+    private Mentor mentor;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

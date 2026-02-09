@@ -8,7 +8,5 @@ import java.util.Optional;
 
 public interface MentorRepository extends JpaRepository<Mentor, Long> {
 
-    Optional<Mentor> findByAccount_AccountId(String accountId);
-
     Optional<Mentor> findMentorIdByAccount_AccountId(String accountId);
 }
