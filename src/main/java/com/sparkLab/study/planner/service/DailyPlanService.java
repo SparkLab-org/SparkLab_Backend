@@ -3,11 +3,10 @@ package com.sparkLab.study.planner.service;
 
 import com.sparkLab.study.common.exception.NotOwnerException;
 import com.sparkLab.study.common.exception.ParentResourceNotFoundException;
-import com.sparkLab.study.planner.dto.DailyCommentReq;
-import com.sparkLab.study.planner.dto.DailyCommentRes;
-import com.sparkLab.study.planner.dto.DailyPlanCreateReq;
-import com.sparkLab.study.planner.dto.DailyPlanCreateRes;
-import com.sparkLab.study.user.entity.Mentee;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentReq;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentRes;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateReq;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateRes;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import com.sparkLab.study.planner.entity.DailyPlan;

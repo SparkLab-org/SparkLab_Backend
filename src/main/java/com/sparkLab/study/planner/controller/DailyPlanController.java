@@ -1,10 +1,10 @@
 package com.sparkLab.study.planner.controller;
 
 import com.sparkLab.study.common.service.UserService;
-import com.sparkLab.study.planner.dto.DailyCommentReq;
-import com.sparkLab.study.planner.dto.DailyCommentRes;
-import com.sparkLab.study.planner.dto.DailyPlanCreateReq;
-import com.sparkLab.study.planner.dto.DailyPlanCreateRes;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentReq;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentRes;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateReq;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateRes;
 import com.sparkLab.study.planner.service.DailyPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
