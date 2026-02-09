@@ -1,6 +1,7 @@
 package com.sparkLab.study.controller;
 
 import com.sparkLab.study.constant.Subject;
+import com.sparkLab.study.dto.todo.TodoAssignmentDetailResponse;
 import com.sparkLab.study.dto.todo.TodoItemCreateRequest;
 import com.sparkLab.study.dto.todo.TodoItemResponse;
 import com.sparkLab.study.dto.todo.TodoItemUpdateRequest;
@@ -24,6 +25,15 @@ import java.util.List;
 public class TodoTypeController {
 
     private final TodoItemService todoItemService;
+
+    /** 공통 날짜별 todo 조회 (과제·학습 통합, 과목 선택 필터) */
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @GetMapping("/date/{planDate}")
+    public List<TodoItemResponse> listByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate planDate,
+            @RequestParam(required = false) Subject subject) {
+        return todoItemService.listByPlanDate(planDate, subject);
+    }
 
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @GetMapping("/assignments")
@@ -77,6 +87,13 @@ public class TodoTypeController {
         return todoItemService.getOneByType(todoItemId, "ASSIGNMENT");
     }
 
+    /** 과제 상세 조회: 할일 내용·첨부 파일·멘티 제출 목록 */
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @GetMapping("/assignments/{todoItemId}/detail")
+    public TodoAssignmentDetailResponse getAssignmentDetail(@PathVariable Long todoItemId) {
+        return todoItemService.getAssignmentDetail(todoItemId);
+    }
+
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @GetMapping("/studies/{todoItemId}")
     public TodoItemResponse getStudy(@PathVariable Long todoItemId) {
@@ -117,7 +134,7 @@ public class TodoTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @PostMapping("/assignments/fixed")
     public ResponseEntity<TodoItemResponse> createFixedAssignment(
             @RequestBody @Valid TodoItemCreateRequest request) {
@@ -125,7 +142,7 @@ public class TodoTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @PostMapping(value = "/assignments/fixed", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TodoItemResponse> createFixedAssignmentWithMaterial(
             @ModelAttribute @Valid TodoItemCreateRequest request,
@@ -134,7 +151,7 @@ public class TodoTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @PostMapping("/studies/fixed")
     public ResponseEntity<TodoItemResponse> createFixedStudy(
             @RequestBody @Valid TodoItemCreateRequest request) {
@@ -142,7 +159,7 @@ public class TodoTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @PostMapping(value = "/studies/fixed", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TodoItemResponse> createFixedStudyWithMaterial(
             @ModelAttribute @Valid TodoItemCreateRequest request,
@@ -159,7 +176,7 @@ public class TodoTypeController {
         return todoItemService.updateByType(todoItemId, "ASSIGNMENT", request, false);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @PutMapping("/assignments/fixed/{todoItemId}")
     public TodoItemResponse updateFixedAssignment(
             @PathVariable Long todoItemId,
@@ -175,7 +192,7 @@ public class TodoTypeController {
         return todoItemService.updateByType(todoItemId, "STUDY", request, false);
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @PutMapping("/studies/fixed/{todoItemId}")
     public TodoItemResponse updateFixedStudy(
             @PathVariable Long todoItemId,
@@ -190,7 +207,7 @@ public class TodoTypeController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @DeleteMapping("/assignments/fixed/{todoItemId}")
     public ResponseEntity<Void> deleteFixedAssignment(@PathVariable Long todoItemId) {
         todoItemService.deleteByType(todoItemId, "ASSIGNMENT", true);
@@ -204,7 +221,7 @@ public class TodoTypeController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PreAuthorize("hasRole('MENTOR')")
     @DeleteMapping("/studies/fixed/{todoItemId}")
     public ResponseEntity<Void> deleteFixedStudy(@PathVariable Long todoItemId) {
         todoItemService.deleteByType(todoItemId, "STUDY", true);

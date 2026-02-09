@@ -1,12 +1,17 @@
 package com.sparkLab.study.service;
 
+import com.sparkLab.study.dto.assignment.AssignmentSubmissionResponse;
+import com.sparkLab.study.dto.todo.TodoAssignmentDetailResponse;
 import com.sparkLab.study.dto.todo.TodoItemCreateRequest;
 import com.sparkLab.study.dto.todo.TodoItemResponse;
 import com.sparkLab.study.dto.todo.TodoItemUpdateRequest;
+import com.sparkLab.study.entity.Assignment;
+import com.sparkLab.study.entity.AssignmentSubmission;
 import com.sparkLab.study.entity.Planner;
 import com.sparkLab.study.entity.TodoItem;
 import com.sparkLab.study.exception.PlannerFixedTodoException;
 import com.sparkLab.study.exception.PlannerResourceNotFoundException;
+import com.sparkLab.study.repository.AssignmentRepository;
 import com.sparkLab.study.repository.PlannerRepository;
 import com.sparkLab.study.repository.TodoItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -31,6 +37,7 @@ import java.util.stream.Collectors;
 public class TodoItemService {
 
     private final TodoItemRepository todoItemRepository;
+    private final AssignmentRepository assignmentRepository;
     private final PlannerRepository plannerRepository;
     private final NotificationService notificationService;
 
@@ -101,10 +108,16 @@ public class TodoItemService {
                 .collect(Collectors.toList());
     }
 
-    // 날짜 기준 할일 목록
+    // 날짜 기준 할일 목록 (전체 타입, 과목 필터 선택)
     @Transactional(readOnly = true)
     public List<TodoItemResponse> listByPlanDate(LocalDate planDate) {
+        return listByPlanDate(planDate, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TodoItemResponse> listByPlanDate(LocalDate planDate, com.sparkLab.study.constant.Subject subject) {
         return todoItemRepository.findByPlanner_PlanDateOrderByCreateTimeAsc(planDate).stream()
+                .filter(todo -> subject == null || subject == todo.getSubject())
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -131,6 +144,60 @@ public class TodoItemService {
             throw new PlannerResourceNotFoundException("할일 타입이 일치하지 않습니다. todoItemId=" + todoItemId);
         }
         return toResponse(todo);
+    }
+
+    /** 과제 상세 조회: 할일 내용 + 첨부 파일 + 멘티 제출 목록 */
+    @Transactional(readOnly = true)
+    public TodoAssignmentDetailResponse getAssignmentDetail(Long todoItemId) {
+        TodoItem todo = findTodo(todoItemId);
+        if (!"ASSIGNMENT".equals(todo.getType())) {
+            throw new PlannerResourceNotFoundException("과제가 아닌 할일입니다. todoItemId=" + todoItemId);
+        }
+        List<Assignment> assignments = assignmentRepository.findByTodoItem_TodoItemIdOrderByAssignmentIdAsc(todoItemId);
+        Long assignmentId = null;
+        List<AssignmentSubmissionResponse> submissions = new ArrayList<>();
+        if (!assignments.isEmpty()) {
+            Assignment assignment = assignments.get(0);
+            assignmentId = assignment.getAssignmentId();
+            if (assignment.getSubmissions() != null) {
+                submissions = assignment.getSubmissions().stream()
+                        .map(this::toSubmissionResponse)
+                        .collect(Collectors.toList());
+            }
+        }
+        return TodoAssignmentDetailResponse.builder()
+                .todoItemId(todo.getTodoItemId())
+                .plannerId(todo.getPlanner().getPlannerId())
+                .assignmentId(assignmentId)
+                .targetDate(todo.getTargetDate())
+                .title(todo.getTitle())
+                .subject(todo.getSubject())
+                .type(todo.getType())
+                .goal(todo.getGoal())
+                .materialType(todo.getMaterialType())
+                .materialUrl(todo.getMaterialUrl())
+                .isFixed(todo.getIsFixed())
+                .status(todo.getStatus())
+                .plannedMinutes(todo.getPlannedMinutes())
+                .actualMinutes(todo.getActualMinutes())
+                .actualSeconds(todo.getActualSeconds())
+                .completedAt(todo.getCompletedAt())
+                .createTime(todo.getCreateTime())
+                .updateTime(todo.getUpdateTime())
+                .submissions(submissions)
+                .build();
+    }
+
+    private AssignmentSubmissionResponse toSubmissionResponse(AssignmentSubmission s) {
+        return AssignmentSubmissionResponse.builder()
+                .submissionId(s.getSubmissionId())
+                .assignmentId(s.getAssignment().getAssignmentId())
+                .menteeId(s.getMentee().getMenteeId())
+                .imageUrl(s.getImageUrl())
+                .comment(s.getComment())
+                .status(s.getStatus())
+                .createTime(s.getCreateTime())
+                .build();
     }
 
     // 할일 수정 (고정 할일이면 403)
@@ -227,6 +294,16 @@ public class TodoItemService {
             todo.setMaterialUrl(materialUrl);
             todo.setMaterialType("PDF");
             todo = todoItemRepository.save(todo);
+        }
+        if ("ASSIGNMENT".equals(todo.getType())) {
+            Assignment assignment = Assignment.builder()
+                    .todoItem(todo)
+                    .mentor(todo.getMentor())
+                    .materialType(todo.getMaterialType())
+                    .materialTitle(todo.getTitle())
+                    .materialFileUrl(todo.getMaterialUrl())
+                    .build();
+            assignmentRepository.save(assignment);
         }
         notificationService.notifyNewTodo(todo);
         return toResponse(todo);
