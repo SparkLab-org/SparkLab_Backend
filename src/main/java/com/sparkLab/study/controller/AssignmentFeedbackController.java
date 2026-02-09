@@ -2,7 +2,9 @@ package com.sparkLab.study.controller;
 
 import com.sparkLab.study.constant.Subject;
 import com.sparkLab.study.dto.feedback.FeedbackCreateRequest;
+import com.sparkLab.study.dto.feedback.FeedbackImportantUpdateRequest;
 import com.sparkLab.study.dto.feedback.FeedbackResponse;
+import com.sparkLab.study.dto.feedback.FeedbackUpdateRequest;
 import com.sparkLab.study.service.FeedbackService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,5 +37,49 @@ public class AssignmentFeedbackController {
             @PathVariable Long assignmentId,
             @RequestParam(required = false) Subject subject) {
         return feedbackService.listByAssignment(assignmentId, subject);
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @GetMapping("/{assignmentId}/feedbacks/{feedbackId}")
+    public FeedbackResponse getForAssignment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long feedbackId) {
+        return feedbackService.getForAssignment(assignmentId, feedbackId);
+    }
+
+    @PreAuthorize("hasRole('MENTOR')")
+    @PutMapping("/{assignmentId}/feedbacks/{feedbackId}")
+    public FeedbackResponse updateForAssignment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long feedbackId,
+            @RequestBody FeedbackUpdateRequest request) {
+        return feedbackService.updateForAssignment(assignmentId, feedbackId, request);
+    }
+
+    @PreAuthorize("hasRole('MENTOR')")
+    @PutMapping("/{assignmentId}/feedbacks/{feedbackId}/important")
+    public FeedbackResponse updateImportantForAssignment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long feedbackId,
+            @RequestBody FeedbackImportantUpdateRequest request) {
+        return feedbackService.updateImportantForAssignment(assignmentId, feedbackId, request.getImportantComment());
+    }
+
+    @PreAuthorize("hasRole('MENTOR')")
+    @DeleteMapping("/{assignmentId}/feedbacks/{feedbackId}/important")
+    public ResponseEntity<FeedbackResponse> deleteImportantForAssignment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long feedbackId) {
+        FeedbackResponse response = feedbackService.deleteImportantForAssignment(assignmentId, feedbackId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('MENTOR')")
+    @DeleteMapping("/{assignmentId}/feedbacks/{feedbackId}")
+    public ResponseEntity<Void> deleteForAssignment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long feedbackId) {
+        feedbackService.deleteForAssignment(assignmentId, feedbackId);
+        return ResponseEntity.noContent().build();
     }
 }

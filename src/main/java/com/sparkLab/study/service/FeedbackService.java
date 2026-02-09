@@ -122,47 +122,60 @@ public class FeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public FeedbackResponse getOne(Long feedbackId) {
-        return toResponse(findFeedback(feedbackId));
+    public FeedbackResponse getForTodo(Long todoItemId, Long feedbackId) {
+        return toResponse(findTodoFeedback(todoItemId, feedbackId));
+    }
+
+    @Transactional(readOnly = true)
+    public FeedbackResponse getForAssignment(Long assignmentId, Long feedbackId) {
+        return toResponse(findAssignmentFeedback(assignmentId, feedbackId));
     }
 
     @Transactional
-    public FeedbackResponse update(Long feedbackId, FeedbackUpdateRequest request) {
-        Feedback feedback = findFeedback(feedbackId);
-        if (request.getTodoItemId() != null && request.getAssignmentId() != null) {
-            throw new IllegalArgumentException("todoItemId와 assignmentId는 동시에 지정할 수 없습니다.");
-        }
-        if (request.getTodoItemId() != null) {
-            TodoItem todoItem = todoItemRepository.findById(request.getTodoItemId())
-                    .orElseThrow(() -> new PlannerResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + request.getTodoItemId()));
-            feedback.setTodoItem(todoItem);
-            feedback.setAssignment(null);
-        }
-        if (request.getAssignmentId() != null) {
-            Assignment assignment = assignmentRepository.findById(request.getAssignmentId())
-                    .orElseThrow(() -> new PlannerResourceNotFoundException("과제를 찾을 수 없습니다. assignmentId=" + request.getAssignmentId()));
-            feedback.setAssignment(assignment);
-            feedback.setTodoItem(null);
-        }
-        if (request.getTargetDate() != null) feedback.setTargetDate(request.getTargetDate());
-        if (request.getSubject() != null) feedback.setSubject(request.getSubject());
-        if (request.getContent() != null) feedback.setContent(request.getContent());
-        feedback.setSummary(resolveSummary(
-                feedback.getContent(),
-                feedback.getImportantComment()
-        ));
+    public FeedbackResponse updateForTodo(Long todoItemId, Long feedbackId, FeedbackUpdateRequest request) {
+        Feedback feedback = findTodoFeedback(todoItemId, feedbackId);
+        applyUpdate(feedback, request);
         return toResponse(feedbackRepository.save(feedback));
     }
 
     @Transactional
-    public void delete(Long feedbackId) {
-        Feedback feedback = findFeedback(feedbackId);
+    public FeedbackResponse updateForAssignment(Long assignmentId, Long feedbackId, FeedbackUpdateRequest request) {
+        Feedback feedback = findAssignmentFeedback(assignmentId, feedbackId);
+        applyUpdate(feedback, request);
+        return toResponse(feedbackRepository.save(feedback));
+    }
+
+    @Transactional
+    public void deleteForTodo(Long todoItemId, Long feedbackId) {
+        Feedback feedback = findTodoFeedback(todoItemId, feedbackId);
+        feedbackRepository.delete(feedback);
+    }
+
+    @Transactional
+    public void deleteForAssignment(Long assignmentId, Long feedbackId) {
+        Feedback feedback = findAssignmentFeedback(assignmentId, feedbackId);
         feedbackRepository.delete(feedback);
     }
 
     private Feedback findFeedback(Long feedbackId) {
         return feedbackRepository.findById(feedbackId)
                 .orElseThrow(() -> new TaskResourceNotFoundException("피드백을 찾을 수 없습니다. feedbackId=" + feedbackId));
+    }
+
+    private Feedback findTodoFeedback(Long todoItemId, Long feedbackId) {
+        Feedback feedback = findFeedback(feedbackId);
+        if (feedback.getTodoItem() == null || !feedback.getTodoItem().getTodoItemId().equals(todoItemId)) {
+            throw new TaskResourceNotFoundException("할일 피드백을 찾을 수 없습니다. todoItemId=" + todoItemId);
+        }
+        return feedback;
+    }
+
+    private Feedback findAssignmentFeedback(Long assignmentId, Long feedbackId) {
+        Feedback feedback = findFeedback(feedbackId);
+        if (feedback.getAssignment() == null || !feedback.getAssignment().getAssignmentId().equals(assignmentId)) {
+            throw new TaskResourceNotFoundException("과제 피드백을 찾을 수 없습니다. assignmentId=" + assignmentId);
+        }
+        return feedback;
     }
 
     private FeedbackResponse toResponse(Feedback feedback) {
@@ -185,8 +198,8 @@ public class FeedbackService {
     }
 
     @Transactional
-    public FeedbackResponse updateImportantComment(Long feedbackId, String importantComment) {
-        Feedback feedback = findFeedback(feedbackId);
+    public FeedbackResponse updateImportantForTodo(Long todoItemId, Long feedbackId, String importantComment) {
+        Feedback feedback = findTodoFeedback(todoItemId, feedbackId);
         String normalized = normalizeImportantComment(importantComment);
         feedback.setImportantComment(normalized);
         feedback.setSummary(resolveSummary(feedback.getContent(), feedback.getImportantComment()));
@@ -194,8 +207,25 @@ public class FeedbackService {
     }
 
     @Transactional
-    public FeedbackResponse deleteImportantComment(Long feedbackId) {
-        Feedback feedback = findFeedback(feedbackId);
+    public FeedbackResponse deleteImportantForTodo(Long todoItemId, Long feedbackId) {
+        Feedback feedback = findTodoFeedback(todoItemId, feedbackId);
+        feedback.setImportantComment(null);
+        feedback.setSummary(resolveSummary(feedback.getContent(), null));
+        return toResponse(feedbackRepository.save(feedback));
+    }
+
+    @Transactional
+    public FeedbackResponse updateImportantForAssignment(Long assignmentId, Long feedbackId, String importantComment) {
+        Feedback feedback = findAssignmentFeedback(assignmentId, feedbackId);
+        String normalized = normalizeImportantComment(importantComment);
+        feedback.setImportantComment(normalized);
+        feedback.setSummary(resolveSummary(feedback.getContent(), feedback.getImportantComment()));
+        return toResponse(feedbackRepository.save(feedback));
+    }
+
+    @Transactional
+    public FeedbackResponse deleteImportantForAssignment(Long assignmentId, Long feedbackId) {
+        Feedback feedback = findAssignmentFeedback(assignmentId, feedbackId);
         feedback.setImportantComment(null);
         feedback.setSummary(resolveSummary(feedback.getContent(), null));
         return toResponse(feedbackRepository.save(feedback));
@@ -206,6 +236,16 @@ public class FeedbackService {
             return importantComment.trim();
         }
         return extractSummaryFromContent(content);
+    }
+
+    private void applyUpdate(Feedback feedback, FeedbackUpdateRequest request) {
+        if (request.getTargetDate() != null) feedback.setTargetDate(request.getTargetDate());
+        if (request.getSubject() != null) feedback.setSubject(request.getSubject());
+        if (request.getContent() != null) feedback.setContent(request.getContent());
+        feedback.setSummary(resolveSummary(
+                feedback.getContent(),
+                feedback.getImportantComment()
+        ));
     }
 
     private Feedback buildFeedback(
