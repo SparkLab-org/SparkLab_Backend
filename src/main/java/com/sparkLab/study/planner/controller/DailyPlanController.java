@@ -1,8 +1,10 @@
 package com.sparkLab.study.planner.controller;
 
 import com.sparkLab.study.common.service.UserService;
-import com.sparkLab.study.planner.dto.DailyCommentDto;
-import com.sparkLab.study.planner.dto.DailyPlanDto;
+import com.sparkLab.study.planner.dto.DailyCommentReq;
+import com.sparkLab.study.planner.dto.DailyCommentRes;
+import com.sparkLab.study.planner.dto.DailyPlanCreateReq;
+import com.sparkLab.study.planner.dto.DailyPlanCreateRes;
 import com.sparkLab.study.planner.service.DailyPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +24,13 @@ public class DailyPlanController {
 
     // REST 규칙과 프론트 편의성 사이의 타협
     @PostMapping
-    public ResponseEntity<DailyPlanDto.Res> findOrCreate(@AuthenticationPrincipal Jwt jwt,
-                                                         @RequestBody DailyPlanDto.Req req) {
+    public ResponseEntity<DailyPlanCreateRes> findOrCreate(@AuthenticationPrincipal Jwt jwt,
+                                                           @RequestBody DailyPlanCreateReq req) {
         // 다형성
         Long menteeId = menteeService.accountToUser(jwt.getSubject());
         req.setMenteeId(menteeId);
         // 도메인 경계분리
-        DailyPlanDto.Res res = dailyPlanService.findOrCreate(req);
+        DailyPlanCreateRes res = dailyPlanService.findOrCreate(req);
 
         if (res.isCreated()) {
             // 새로 생성 → 201 Created + Location 헤더
@@ -42,16 +44,16 @@ public class DailyPlanController {
 
     // DailyPlan 리소스에 대한 수정
     @PutMapping("/{dailyPlanId}/comment")
-    public ResponseEntity<DailyCommentDto.Res> updateComment(@PathVariable Long dailyPlanId,
-                                                             @RequestBody DailyCommentDto.Req req,
-                                                             @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<DailyCommentRes> updateComment(@PathVariable Long dailyPlanId,
+                                                         @RequestBody DailyCommentReq req,
+                                                         @AuthenticationPrincipal Jwt jwt) {
 
         Long menteeId = menteeService.accountToUser(jwt.getSubject());
         req.setMenteeId(menteeId);
         req.setDailyPlanId(dailyPlanId);
 
         // 즉시 갱신 용도, ID 기준으로 추가 GET 호출 없이 화면에 반영
-        DailyCommentDto.Res res = dailyPlanService.updateComment(req);
+        DailyCommentRes res = dailyPlanService.updateComment(req);
         return ResponseEntity.ok(res);
     }
 }
