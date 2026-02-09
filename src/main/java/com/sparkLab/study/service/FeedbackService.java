@@ -134,6 +134,14 @@ public class FeedbackService {
         return toResponse(feedbackRepository.save(feedback));
     }
 
+    @Transactional
+    public FeedbackResponse deleteImportantComment(Long feedbackId) {
+        Feedback feedback = findFeedback(feedbackId);
+        feedback.setImportantComment(null);
+        feedback.setSummary(resolveSummary(feedback.getContent(), null));
+        return toResponse(feedbackRepository.save(feedback));
+    }
+
     private String resolveSummary(String content, String importantComment) {
         if (!isBlank(importantComment)) {
             return importantComment.trim();

@@ -61,6 +61,14 @@ public class FeedbackController {
     }
 
     @PreAuthorize("hasRole('MENTOR')")
+    @DeleteMapping("/{feedbackId}/important")
+    public ResponseEntity<FeedbackResponse> deleteImportantComment(
+            @PathVariable Long feedbackId) {
+        FeedbackResponse response = feedbackService.deleteImportantComment(feedbackId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('MENTOR')")
     @DeleteMapping("/{feedbackId}")
     public ResponseEntity<Void> delete(@PathVariable Long feedbackId) {
         feedbackService.delete(feedbackId);
