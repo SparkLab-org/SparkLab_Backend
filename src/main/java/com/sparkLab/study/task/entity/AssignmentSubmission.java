@@ -8,6 +8,7 @@ import lombok.*;
 @Entity
 @Table(name = "assignmentSubmissions")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

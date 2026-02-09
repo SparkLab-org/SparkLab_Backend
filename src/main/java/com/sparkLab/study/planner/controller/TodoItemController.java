@@ -22,7 +22,9 @@ public class TodoItemController {
 
     private final TodoItemService todoItemService;
 
-    /** 할일 목록: plannerId 또는 planDate 중 하나로 조회 */
+    /**
+     * 할일 목록: plannerId 또는 planDate 중 하나로 조회
+     */
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @GetMapping
     public List<TodoItemResponse> list(

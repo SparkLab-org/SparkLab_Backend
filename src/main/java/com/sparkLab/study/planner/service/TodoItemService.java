@@ -37,10 +37,10 @@ public class TodoItemService {
         return createTodo(request, true);
     }
 
-    // 플래너 기준 할일 목록 
+    // 플래너 기준 할일 목록
     @Transactional(readOnly = true)
     public List<TodoItemResponse> listByPlannerId(Long plannerId) {
-        return todoItemRepository.findByDailyPlan_dailyPlanIdOrderByCreateTimeAsc(plannerId).stream()
+        return todoItemRepository.findByDailyPlan_DailyPlanIdOrderByCreateTimeAsc(plannerId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -53,7 +53,7 @@ public class TodoItemService {
                 .collect(Collectors.toList());
     }
 
-    // 할일 단건 조회 
+    // 할일 단건 조회
     @Transactional(readOnly = true)
     public TodoItemResponse getOne(Long todoItemId) {
         TodoItem todo = findTodo(todoItemId);
@@ -102,16 +102,16 @@ public class TodoItemService {
     }
 
     private TodoItemResponse createTodo(TodoItemCreateRequest request, boolean isFixed) {
-        DailyPlan planner = dailyPlanRepository.findById(request.getPlannerId())
+        DailyPlan dailyPlan = dailyPlanRepository.findById(request.getPlannerId())
                 .orElseThrow(() -> new PlannerResourceNotFoundException("플래너를 찾을 수 없습니다. plannerId=" + request.getPlannerId()));
-        if (planner.getMentee() == null) {
+        if (dailyPlan.getMentee() == null) {
             throw new PlannerResourceNotFoundException("플래너에 연결된 멘티가 없습니다. plannerId=" + request.getPlannerId());
         }
         TodoItem todo = TodoItem.builder()
-                .mentee(planner.getMentee())
-                .mentor(isFixed ? planner.getMentee().getMentorId() : null)
-                .dailyPlan(planner)
-                .targetDate(planner.getPlanDate())
+                .mentee(dailyPlan.getMentee())
+                .mentor(isFixed ? dailyPlan.getMentee().getMentorId() : null)
+                .dailyPlan(dailyPlan)
+                .targetDate(request.getTargetDate() != null ? request.getTargetDate() : dailyPlan.getPlanDate())
                 .title(request.getTitle())
                 .subject(request.getSubject())
                 .type(request.getType())
@@ -126,11 +126,13 @@ public class TodoItemService {
 
     private TodoItem applyUpdate(TodoItem todo, TodoItemUpdateRequest request) {
         if (request.getTitle() != null) todo.setTitle(request.getTitle());
+        if (request.getTargetDate() != null) todo.setTargetDate(request.getTargetDate());
         if (request.getSubject() != null) todo.setSubject(request.getSubject());
         if (request.getType() != null) todo.setType(request.getType());
         if (request.getStatus() != null) todo.setStatus(request.getStatus());
         if (request.getPlannedMinutes() != null) todo.setPlannedMinutes(request.getPlannedMinutes());
         if (request.getActualMinutes() != null) todo.setActualMinutes(request.getActualMinutes());
+        if (request.getActualSeconds() != null) todo.setActualSeconds(request.getActualSeconds());
         if (request.getCompletedAt() != null) todo.setCompletedAt(request.getCompletedAt());
         return todo;
     }
@@ -147,6 +149,7 @@ public class TodoItemService {
                 .status(todo.getStatus())
                 .plannedMinutes(todo.getPlannedMinutes())
                 .actualMinutes(todo.getActualMinutes())
+                .actualSeconds(todo.getActualSeconds())
                 .completedAt(todo.getCompletedAt())
                 .createTime(todo.getCreateTime())
                 .updateTime(todo.getUpdateTime())

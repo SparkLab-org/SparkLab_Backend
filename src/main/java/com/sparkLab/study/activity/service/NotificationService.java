@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -39,10 +38,11 @@ public class NotificationService {
     private static final String TYPE_MENTEE_WARNING = "MENTEE_WARNING";
     private static final String TYPE_MENTEE_DANGER = "MENTEE_DANGER";
 
-    private static final String LINK_PLANNER = "PLANNER";
-    private static final String LINK_ASSIGNMENT = "ASSIGNMENT";
-    private static final String LINK_MENTEE = "MENTEE";
-    private static final String LINK_QNA = "QNA";
+    private static final NotificationLinkType LINK_TODO = NotificationLinkType.TODO;
+    private static final NotificationLinkType LINK_ASSIGNMENT = NotificationLinkType.ASSIGNMENT;
+    private static final NotificationLinkType LINK_FEEDBACK = NotificationLinkType.FEEDBACK;
+    private static final NotificationLinkType LINK_QUESTION = NotificationLinkType.QUESTION;
+    private static final NotificationLinkType LINK_MENTEE = NotificationLinkType.MENTEE;
     private static final String TITLE_TODO_CREATED =
             "📌 새로운 할 일이 등록되었어요.\n플래너에서 바로 확인해보세요!";
     private static final String TITLE_ASSIGNMENT_DUE_SOON =
@@ -65,7 +65,6 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
-    private final DailyPlanRepository dailyPlanRepository;
 
     @Transactional(readOnly = true)
     public List<NotificationResponse> listByAccount(String accountId) {
@@ -84,9 +83,13 @@ public class NotificationService {
         if (recipient == null) {
             return;
         }
-        DailyPlan planner = todoItem.getDailyPlan();
-        Long plannerId = planner == null ? null : planner.getDailyPlanId();
-        createNotification(recipient, TYPE_TODO_CREATED, TITLE_TODO_CREATED, LINK_PLANNER, plannerId);
+        createNotification(
+                recipient,
+                TYPE_TODO_CREATED,
+                TITLE_TODO_CREATED,
+                LINK_TODO,
+                todoItem.getTodoItemId()
+        );
     }
 
     @Transactional
@@ -97,23 +100,21 @@ public class NotificationService {
         }
         TodoItem todoItem = feedback.getTodoItem();
         if (todoItem != null && todoItem.getAssignments() != null && !todoItem.getAssignments().isEmpty()) {
-            Assignment assignment = todoItem.getAssignments().get(0);
             createNotification(
                     mentee.getAccount(),
                     TYPE_ASSIGNMENT_FEEDBACK,
                     TITLE_ASSIGNMENT_FEEDBACK,
-                    LINK_ASSIGNMENT,
-                    assignment.getAssignmentId()
+                    LINK_FEEDBACK,
+                    feedback.getFeedbackId()
             );
             return;
         }
-        Long plannerId = resolvePlannerId(mentee.getMenteeId(), feedback.getTargetDate(), todoItem);
         createNotification(
                 mentee.getAccount(),
                 TYPE_PLANNER_FEEDBACK,
                 TITLE_PLANNER_FEEDBACK,
-                LINK_PLANNER,
-                plannerId
+                LINK_FEEDBACK,
+                feedback.getFeedbackId()
         );
     }
 
@@ -148,7 +149,7 @@ public class NotificationService {
                 recipient,
                 TYPE_MENTOR_QUESTION_CREATED,
                 formatMenteeTitle(TITLE_MENTOR_QUESTION_CREATED, mentee),
-                LINK_QNA,
+                LINK_QUESTION,
                 qnaId
         );
     }
@@ -277,18 +278,6 @@ public class NotificationService {
         }
     }
 
-    private Long resolvePlannerId(Long menteeId, LocalDateTime targetDate, TodoItem todoItem) {
-        if (todoItem != null && todoItem.getDailyPlan() != null) {
-            return todoItem.getDailyPlan().getDailyPlanId();
-        }
-        if (targetDate == null) {
-            return null;
-        }
-        return dailyPlanRepository.findByMentee_MenteeIdAndPlanDate(menteeId, targetDate.toLocalDate())
-                .map(DailyPlan::getDailyPlanId)
-                .orElse(null);
-    }
-
     private Account resolveMentorAccount(Assignment assignment, Mentee mentee) {
         Mentor mentor = assignment == null ? null : assignment.getMentor();
         if (mentor == null && mentee != null) {
@@ -311,14 +300,14 @@ public class NotificationService {
             Account recipient,
             String type,
             String title,
-            String linkType,
+            NotificationLinkType linkType,
             Long linkId
     ) {
         Notification notification = Notification.builder()
                 .recipient(recipient)
                 .type(type)
                 .title(title)
-                .linkType(NotificationLinkType.valueOf(linkType))
+                .linkType(linkType)
                 .linkId(linkId)
                 .isRead(false)
                 .createdAt(LocalDateTime.now())

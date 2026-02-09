@@ -43,8 +43,8 @@ public class FeedbackCommentService {
                 .feedbackId(comment.getFeedback().getFeedbackId())
                 .type(comment.getType())
                 .content(comment.getContent())
-                .createTime(comment.getFeedback().getCreateTime())
-                .updateTime(comment.getFeedback().getUpdateTime())
+                .createTime(comment.getCreateTime())
+                .updateTime(comment.getUpdateTime())
                 .build();
     }
 }

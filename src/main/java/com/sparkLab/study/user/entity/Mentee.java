@@ -6,7 +6,9 @@ import com.sparkLab.study.acheivement.entity.ProgressStatics;
 import com.sparkLab.study.planner.entity.TodoItem;
 import com.sparkLab.study.security.auth.entity.Account;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.util.List;
 
@@ -14,6 +16,8 @@ import java.util.List;
 @Table(name = "mentees")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Mentee {
 
     @Id

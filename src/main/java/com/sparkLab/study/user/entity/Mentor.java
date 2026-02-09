@@ -5,12 +5,19 @@ import com.sparkLab.study.task.entity.Feedback;
 import com.sparkLab.study.planner.entity.TodoItem;
 import com.sparkLab.study.security.auth.entity.Account;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Entity
 @Table(name = "mentors")
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Mentor {
 
     @Id

@@ -1,5 +1,6 @@
 package com.sparkLab.study.task.controller;
 
+import com.sparkLab.study.task.dto.assignment.AssignmentSubmissionBatchResponse;
 import com.sparkLab.study.task.dto.assignment.AssignmentSubmissionResponse;
 import com.sparkLab.study.task.service.AssignmentSubmissionService;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@RestController
-@RequestMapping("assignments")
+import java.util.List;
+
+@RestController@RequestMapping("assignments")
 @RequiredArgsConstructor
 public class AssignmentSubmissionController {
 
@@ -20,10 +22,42 @@ public class AssignmentSubmissionController {
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @PostMapping(value = "/{assignmentId}/submissions",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<AssignmentSubmissionResponse> submit(
+    public ResponseEntity<AssignmentSubmissionBatchResponse> submit(
             @PathVariable Long assignmentId,
-            @RequestParam("file") MultipartFile file) {
-        AssignmentSubmissionResponse response = submissionService.submit(assignmentId, file);
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            @RequestParam(value = "comment", required = false) String comment) {
+        AssignmentSubmissionBatchResponse response = submissionService.submit(assignmentId, file, files, comment);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PutMapping(value = "/{assignmentId}/submissions/{submissionId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AssignmentSubmissionResponse> update(
+            @PathVariable Long assignmentId,
+            @PathVariable Long submissionId,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "comment", required = false) String comment) {
+        AssignmentSubmissionResponse response = submissionService.update(assignmentId, submissionId, file, comment);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @DeleteMapping("/{assignmentId}/submissions/{submissionId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long assignmentId,
+            @PathVariable Long submissionId) {
+        submissionService.delete(assignmentId, submissionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @DeleteMapping("/{assignmentId}/submissions/{submissionId}/comment")
+    public ResponseEntity<AssignmentSubmissionResponse> deleteComment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long submissionId) {
+        AssignmentSubmissionResponse response = submissionService.deleteComment(assignmentId, submissionId);
+        return ResponseEntity.ok(response);
     }
 }
