@@ -12,7 +12,7 @@ import lombok.Setter;
 @Table(name = "question_replies")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class QnaReply extends BaseTime {
 
     @Id
