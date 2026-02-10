@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class FeedbackUpdateRequest {
 
     private Long todoItemId;
-
+    private String title;
     private LocalDateTime targetDate;
 
     private Boolean isImportant;

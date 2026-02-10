@@ -21,11 +21,11 @@ public class FeedbackCreateRequest {
 
     private Long todoItemId;
 
+    private String title;
     private LocalDateTime targetDate;
 
     private Boolean isImportant;
 
-    @NotBlank(message = "summary는 필수입니다")
     private String summary;
 
     @NotBlank(message = "content는 필수입니다")

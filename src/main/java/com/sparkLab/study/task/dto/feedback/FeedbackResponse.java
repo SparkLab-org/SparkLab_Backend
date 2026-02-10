@@ -1,5 +1,6 @@
 package com.sparkLab.study.task.dto.feedback;
 
+import com.sparkLab.study.common.constant.Subject;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,10 +13,14 @@ public class FeedbackResponse {
     private Long mentorId;
     private Long menteeId;
     private Long todoItemId;
+    private String todoTitle;
+    private Subject subject;
+    private String title;
     private LocalDateTime targetDate;
     private Boolean isImportant;
     private String summary;
     private String content;
+    private Boolean isBookmarked;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }
