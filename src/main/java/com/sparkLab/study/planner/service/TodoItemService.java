@@ -153,9 +153,15 @@ public class TodoItemService {
     }
 
     private TodoItemResponse toResponse(TodoItem todo) {
+        Long assignmentId = null;
+        if (todo.getAssignments() != null && !todo.getAssignments().isEmpty()) {
+            assignmentId = todo.getAssignments().get(0).getAssignmentId();
+        }
+
         return TodoItemResponse.builder()
                 .todoItemId(todo.getTodoItemId())
                 .plannerId(todo.getDailyPlan().getDailyPlanId())
+                .assignmentId(assignmentId)
                 .targetDate(todo.getTargetDate())
                 .title(todo.getTitle())
                 .subject(todo.getSubject())
