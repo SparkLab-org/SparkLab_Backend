@@ -13,4 +13,7 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     );
 
     List<Assignment> findByTodoItem_TargetDate(LocalDate targetDate);
+
+    /** 멘티별 과제 목록 (과제일 기준 내림차순) */
+    List<Assignment> findByTodoItem_Mentee_MenteeIdOrderByTodoItem_TargetDateDescCreateTimeDesc(Long menteeId);
 }
