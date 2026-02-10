@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
 
@@ -17,6 +16,4 @@ public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
     List<TodoItem> findByDailyPlan_Mentee_MenteeIdAndDailyPlan_PlanDateOrderByCreateTimeAsc(Long menteeId, LocalDate planDate);
 
     boolean existsByTodoItemIdAndMentee_MenteeId(Long todoItemId, Long menteeId);
-
-    Optional<TodoItem> findByDailyPlan_DailyPlanIdOrderByCreateTimeAsc(Long plannerId);
 }
