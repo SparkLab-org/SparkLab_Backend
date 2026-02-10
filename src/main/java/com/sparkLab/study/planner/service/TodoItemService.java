@@ -10,9 +10,12 @@ import com.sparkLab.study.planner.dto.todo.TodoItemCreateRequest;
 import com.sparkLab.study.planner.dto.todo.TodoItemResponse;
 import com.sparkLab.study.planner.dto.todo.TodoItemUpdateRequest;
 import com.sparkLab.study.planner.entity.TodoItem;
+import com.sparkLab.study.task.entity.Assignment;
+import com.sparkLab.study.task.repository.AssignmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +27,7 @@ public class TodoItemService {
     private final TodoItemRepository todoItemRepository;
     private final DailyPlanRepository dailyPlanRepository;
     private final NotificationService notificationService;
+    private final AssignmentRepository assignmentRepository;
 
     // 할일 생성
     @Transactional
@@ -121,6 +125,17 @@ public class TodoItemService {
                 .build();
         todo = todoItemRepository.save(todo);
         notificationService.notifyNewTodo(todo);
+
+        // 타입이 "과제"인 Todo는 Assignment를 함께 생성
+        if ("과제".equals(todo.getType())) {
+            Assignment assignment = Assignment.builder()
+                    .todoItem(todo)
+                    .mentor(todo.getMentor())
+                    .materialTitle(todo.getTitle())
+                    .build();
+            assignmentRepository.save(assignment);
+        }
+
         return toResponse(todo);
     }
 
