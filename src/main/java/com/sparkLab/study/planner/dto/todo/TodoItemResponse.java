@@ -15,6 +15,7 @@ public class TodoItemResponse {
 
     private Long todoItemId;
     private Long plannerId;
+    private Long assignmentId;
     private LocalDate targetDate;
     private String title;
     private Subject subject;
