@@ -40,7 +40,7 @@ public class TodoItemService {
     // 플래너 기준 할일 목록
     @Transactional(readOnly = true)
     public List<TodoItemResponse> listByPlannerId(Long plannerId) {
-        return todoItemRepository.findByDailyPlan_DailyPlanIdOrderByCreateTimeAsc(plannerId).stream()
+        return todoItemRepository.findByDailyPlan_dailyPlanIdOrderByCreateTimeAsc(plannerId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
