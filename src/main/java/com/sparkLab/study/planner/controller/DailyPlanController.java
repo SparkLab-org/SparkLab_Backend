@@ -8,9 +8,11 @@ import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateRes;
 import com.sparkLab.study.planner.service.DailyPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
 import java.net.URI;
 
 
@@ -37,6 +39,25 @@ public class DailyPlanController {
                     .body(res);
         } else {
             // 기존 리소스 조회 → 200 OK
+            return ResponseEntity.ok(res);
+        }
+    }
+
+    /**
+     * 멘토가 특정 멘티의 DailyPlan을 생성/조회하는 엔드포인트.
+     * - path 로 멘티 ID를 직접 전달
+     * - 기존 findOrCreate 와 동일하게, 이미 있으면 조회, 없으면 생성
+     */
+    @PreAuthorize("hasRole('MENTOR')")
+    @PostMapping("/mentees/{menteeId}")
+    public ResponseEntity<DailyPlanCreateRes> findOrCreateForMentee(@PathVariable Long menteeId,
+                                                                    @RequestBody DailyPlanCreateReq req) {
+        DailyPlanCreateRes res = dailyPlanService.findOrCreate(req, menteeId);
+
+        if (res.isCreated()) {
+            return ResponseEntity.created(URI.create("/dailyPlan/%d".formatted(res.getDailyPlanId())))
+                    .body(res);
+        } else {
             return ResponseEntity.ok(res);
         }
     }
