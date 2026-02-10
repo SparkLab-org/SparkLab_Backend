@@ -93,7 +93,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
-                "http://localhost:3000", "https://shad-rubbery-savourily.ngrok-free.dev"
+                "http://localhost:3000", "https://shad-rubbery-savourily.ngrok-free.dev","http://sparklab-blaybus.duckdns.org:3000", "http://104.198.159.91:3000"
         ));
         config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
