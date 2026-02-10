@@ -1,15 +1,20 @@
 package com.sparkLab.study.planner.controller;
 
 import com.sparkLab.study.planner.service.TodoItemService;
+import com.sparkLab.study.planner.dto.todo.MenteeTodosResponse;
 import com.sparkLab.study.planner.dto.todo.TodoItemCreateRequest;
 import com.sparkLab.study.planner.dto.todo.TodoItemResponse;
 import com.sparkLab.study.planner.dto.todo.TodoItemUpdateRequest;
+import com.sparkLab.study.security.auth.constant.AccountRole;
+import com.sparkLab.study.user.service.MentorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -21,17 +26,34 @@ import java.util.List;
 public class TodoItemController {
 
     private final TodoItemService todoItemService;
+    private final MentorService mentorService;
 
     /**
-     * 할일 목록: plannerId 또는 planDate 중 하나로 조회
+     * 할일 목록 조회
+     * - plannerId: 해당 플래너의 할일 (flat)
+     * - 멘토: menteeId, planDate 조합으로 멘티별 조회
+     *   - menteeId: 멘티 필터 (없으면 전체 멘티)
+     *   - planDate: 날짜 필터 (없으면 전체 기간)
+     * - 멘티 + planDate: 해당 날짜 할일 (flat)
      */
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @GetMapping
-    public List<TodoItemResponse> list(
+    public Object list(
             @RequestParam(required = false) Long plannerId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate planDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate planDate,
+            @RequestParam(required = false) Long menteeId,
+            @AuthenticationPrincipal Jwt jwt) {
         if (plannerId != null) {
             return todoItemService.listByPlannerId(plannerId);
+        }
+        List<String> rolesClaim = jwt.getClaimAsStringList("roles");
+        String role = (rolesClaim != null && !rolesClaim.isEmpty()) ? rolesClaim.get(0) : "";
+        if (role != null && role.startsWith("ROLE_")) {
+            role = role.substring(5);
+        }
+        if (AccountRole.MENTOR.name().equals(role)) {
+            Long mentorId = mentorService.accountToUser(jwt.getSubject());
+            return todoItemService.listByMentorGroupedByMentee(mentorId, planDate, menteeId);
         }
         if (planDate != null) {
             return todoItemService.listByPlanDate(planDate);

@@ -15,5 +15,8 @@ public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
 
     List<TodoItem> findByDailyPlan_Mentee_MenteeIdAndDailyPlan_PlanDateOrderByCreateTimeAsc(Long menteeId, LocalDate planDate);
 
+    /** 멘티별 할일 (날짜 필터 없이 전체) */
+    List<TodoItem> findByMentee_MenteeIdOrderByTargetDateDescCreateTimeAsc(Long menteeId);
+
     boolean existsByTodoItemIdAndMentee_MenteeId(Long todoItemId, Long menteeId);
 }
