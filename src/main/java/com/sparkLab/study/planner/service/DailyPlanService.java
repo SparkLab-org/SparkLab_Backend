@@ -13,7 +13,8 @@ import com.sparkLab.study.planner.entity.DailyPlan;
 import com.sparkLab.study.planner.repository.DailyPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +27,11 @@ public class DailyPlanService {
     @Transactional
     public DailyPlanCreateRes findOrCreate(DailyPlanCreateReq req, Long menteeId){
 
-        Optional<Long> entityId = dailyPlanRepository.findIdByMenteeIdAndPlanDate(menteeId, req.getPlanDate());
+        List<Long> entityIds = dailyPlanRepository.findIdByMenteeIdAndPlanDate(menteeId, req.getPlanDate());
         // 기존 조회
-        if(entityId.isPresent()){
+        if (!entityIds.isEmpty()) {
             return DailyPlanCreateRes.builder()
-                    .dailyPlanId(entityId.get())
+                    .dailyPlanId(entityIds.get(0))
                     .build();
         }
         // 새로 생성
