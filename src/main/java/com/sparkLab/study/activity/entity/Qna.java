@@ -21,7 +21,7 @@ import java.util.List;
 @Table(name = "questions")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Qna extends BaseTime {
 
     @Id
