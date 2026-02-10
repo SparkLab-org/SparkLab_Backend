@@ -87,8 +87,7 @@ public class TodoItemService {
                 .map(mentee -> {
                     List<TodoItem> todos;
                     if (planDate != null) {
-                        todos = todoItemRepository.findByDailyPlan_Mentee_MenteeIdAndDailyPlan_PlanDateOrderByCreateTimeAsc(
-                                mentee.getMenteeId(), planDate);
+                        todos = todoItemRepository.findByDailyPlan_Mentee_MenteeIdAndDailyPlan_PlanDateOrderByCreateTimeAsc(mentee.getMenteeId(), planDate);
                     } else {
                         todos = todoItemRepository.findByMentee_MenteeIdOrderByTargetDateDescCreateTimeAsc(mentee.getMenteeId());
                     }
