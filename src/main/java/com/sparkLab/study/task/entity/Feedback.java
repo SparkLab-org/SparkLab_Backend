@@ -20,6 +20,7 @@ public class Feedback extends BaseTime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long feedbackId;
 
+    private String title;
     private LocalDateTime targetDate;
     private Boolean isImportant;
     private String summary;

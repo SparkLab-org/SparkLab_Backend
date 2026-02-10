@@ -37,6 +37,28 @@ public class FeedbackCommentService {
         return comments.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    @Transactional
+    public FeedbackCommentResponse update(Long feedbackId, Long commentId, com.sparkLab.study.task.dto.feedback.FeedbackCommentUpdateRequest request) {
+        FeedbackComment comment = feedbackCommentRepository.findById(commentId)
+                .orElseThrow(() -> new TaskResourceNotFoundException("댓글을 찾을 수 없습니다. commentId=" + commentId));
+        if (!comment.getFeedback().getFeedbackId().equals(feedbackId)) {
+            throw new TaskResourceNotFoundException("피드백과 댓글 정보가 일치하지 않습니다.");
+        }
+        if (request.getType() != null) comment.setType(request.getType());
+        if (request.getContent() != null) comment.setContent(request.getContent());
+        return toResponse(feedbackCommentRepository.save(comment));
+    }
+
+    @Transactional
+    public void delete(Long feedbackId, Long commentId) {
+        FeedbackComment comment = feedbackCommentRepository.findById(commentId)
+                .orElseThrow(() -> new TaskResourceNotFoundException("댓글을 찾을 수 없습니다. commentId=" + commentId));
+        if (!comment.getFeedback().getFeedbackId().equals(feedbackId)) {
+            throw new TaskResourceNotFoundException("피드백과 댓글 정보가 일치하지 않습니다.");
+        }
+        feedbackCommentRepository.delete(comment);
+    }
+
     private FeedbackCommentResponse toResponse(FeedbackComment comment) {
         return FeedbackCommentResponse.builder()
                 .feedbackCommentId(comment.getFeedbackCommentId())
