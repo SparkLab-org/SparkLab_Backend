@@ -126,8 +126,8 @@ public class TodoItemService {
         todo = todoItemRepository.save(todo);
         notificationService.notifyNewTodo(todo);
 
-        // 타입이 "과제"인 Todo는 Assignment를 함께 생성
-        if ("과제".equals(todo.getType())) {
+        // 타입이 ASSIGNMENT인 Todo는 Assignment를 함께 생성
+        if ("ASSIGNMENT".equalsIgnoreCase(todo.getType())) {
             Assignment assignment = Assignment.builder()
                     .todoItem(todo)
                     .mentor(todo.getMentor())
