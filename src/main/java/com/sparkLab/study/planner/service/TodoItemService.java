@@ -6,18 +6,24 @@ import com.sparkLab.study.planner.exception.PlannerFixedTodoException;
 import com.sparkLab.study.planner.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.planner.repository.DailyPlanRepository;
 import com.sparkLab.study.planner.repository.TodoItemRepository;
+import com.sparkLab.study.planner.dto.todo.DateTodosGroup;
+import com.sparkLab.study.planner.dto.todo.MenteeTodosResponse;
 import com.sparkLab.study.planner.dto.todo.TodoItemCreateRequest;
 import com.sparkLab.study.planner.dto.todo.TodoItemResponse;
 import com.sparkLab.study.planner.dto.todo.TodoItemUpdateRequest;
 import com.sparkLab.study.planner.entity.TodoItem;
 import com.sparkLab.study.task.entity.Assignment;
 import com.sparkLab.study.task.repository.AssignmentRepository;
+import com.sparkLab.study.user.entity.Mentee;
+import com.sparkLab.study.user.repository.MenteeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +34,7 @@ public class TodoItemService {
     private final DailyPlanRepository dailyPlanRepository;
     private final NotificationService notificationService;
     private final AssignmentRepository assignmentRepository;
+    private final MenteeRepository menteeRepository;
 
     // 할일 생성
     @Transactional
@@ -54,6 +61,56 @@ public class TodoItemService {
     public List<TodoItemResponse> listByPlanDate(LocalDate planDate) {
         return todoItemRepository.findByDailyPlan_PlanDateOrderByCreateTimeAsc(planDate).stream()
                 .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 멘토: 할일 목록을 멘티별로 묶어서 조회 (날짜별, 멘티별 필터)
+     * - planDate: 해당 날짜의 할일만 (없으면 전체 기간)
+     * - menteeId: 해당 멘티만 (없으면 전체 멘티)
+     */
+    @Transactional(readOnly = true)
+    public List<MenteeTodosResponse> listByMentorGroupedByMentee(Long mentorId, LocalDate planDate, Long menteeId) {
+        List<Mentee> mentees;
+        if (menteeId != null) {
+            Mentee mentee = menteeRepository.findById(menteeId)
+                    .orElseThrow(() -> new PlannerResourceNotFoundException("멘티를 찾을 수 없습니다. menteeId=" + menteeId));
+            if (mentee.getMentor() == null || !mentee.getMentor().getMentorId().equals(mentorId)) {
+                throw new PlannerResourceNotFoundException("해당 멘티는 해당 멘토 소속이 아닙니다.");
+            }
+            mentees = List.of(mentee);
+        } else {
+            mentees = menteeRepository.findByMentor_MentorId(mentorId);
+        }
+
+        return mentees.stream()
+                .map(mentee -> {
+                    List<TodoItem> todos;
+                    if (planDate != null) {
+                        todos = todoItemRepository.findByDailyPlan_Mentee_MenteeIdAndDailyPlan_PlanDateOrderByCreateTimeAsc(
+                                mentee.getMenteeId(), planDate);
+                    } else {
+                        todos = todoItemRepository.findByMentee_MenteeIdOrderByTargetDateDescCreateTimeAsc(mentee.getMenteeId());
+                    }
+                    // 멘티당 날짜별로 그룹화 (날짜 내림차순)
+                    List<DateTodosGroup> todosByDate = todos.stream()
+                            .collect(Collectors.groupingBy(
+                                    t -> t.getDailyPlan() != null ? t.getDailyPlan().getPlanDate() : t.getTargetDate(),
+                                    Collectors.mapping(this::toResponse, Collectors.toList())))
+                            .entrySet().stream()
+                            .map(e -> DateTodosGroup.builder()
+                                    .planDate(e.getKey())
+                                    .todos(e.getValue())
+                                    .build())
+                            .sorted(Comparator.comparing(DateTodosGroup::getPlanDate).reversed())
+                            .collect(Collectors.toList());
+                    return MenteeTodosResponse.builder()
+                            .menteeId(mentee.getMenteeId())
+                            .accountId(mentee.getAccount() != null ? mentee.getAccount().getAccountId() : null)
+                            .activeLevel(mentee.getActiveLevel())
+                            .todosByDate(todosByDate)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
