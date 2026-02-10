@@ -35,6 +35,7 @@ public class Mentor {
 
     // 멘토는 멘티를 거쳐서
     @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Mentee> mentees = new ArrayList<>();
 
     @OneToMany(mappedBy = "feedbackId", fetch = FetchType.LAZY)

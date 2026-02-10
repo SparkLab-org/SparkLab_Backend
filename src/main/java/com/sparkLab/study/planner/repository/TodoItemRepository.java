@@ -1,7 +1,6 @@
 package com.sparkLab.study.planner.repository;
 
 import com.sparkLab.study.planner.entity.TodoItem;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
