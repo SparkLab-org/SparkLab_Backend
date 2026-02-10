@@ -1,20 +1,18 @@
 package com.sparkLab.study.planner.service;
 
-
 import com.sparkLab.study.common.exception.NotOwnerException;
 import com.sparkLab.study.common.exception.ParentResourceNotFoundException;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentReq;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentRes;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateReq;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateRes;
+import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanSummaryRes;
+import com.sparkLab.study.planner.dto.dailyPlan.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import com.sparkLab.study.planner.entity.DailyPlan;
 import com.sparkLab.study.planner.repository.DailyPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -65,5 +63,31 @@ public class DailyPlanService {
                 .dailyPlanId(dailyPlan.getDailyPlanId())
                 .comment(dailyPlan.getComment())
                 .build();
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<DailyPlan> findByDateRange(Long menteeId, LocalDate startDate, LocalDate endDate) {
+        return dailyPlanRepository.findByMentee_MenteeIdAndPlanDateBetweenOrderByPlanDateAsc(menteeId, startDate, endDate);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DailyPlanSummaryRes> getDailySummary(Long menteeId, LocalDate startDate, LocalDate endDate) {
+        return dailyPlanRepository.findDailyTodoSummary(menteeId, startDate, endDate)
+                .stream()
+                .map(obj -> {
+                    LocalDate planDate = (LocalDate) obj[0];
+                    Long totalCount = (Long) obj[1];
+                    Long completedCount = (Long) obj[2];
+                    double achievementRate = totalCount > 0 ? completedCount * 100.0 / totalCount : 0.0;
+
+                    return DailyPlanSummaryRes.builder()
+                            .planDate(planDate)
+                            .totalCount(totalCount.intValue())
+                            .completedCount(completedCount.intValue())
+                            .achievementRate(achievementRate)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

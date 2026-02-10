@@ -1,20 +1,19 @@
 package com.sparkLab.study.planner.controller;
 
-import com.sparkLab.study.common.service.UserService;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentReq;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyCommentRes;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateReq;
-import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanCreateRes;
+import com.sparkLab.study.planner.dto.dailyPlan.*;
 import com.sparkLab.study.planner.service.DailyPlanService;
+import com.sparkLab.study.user.service.MenteeService;
+import com.sparkLab.study.user.service.MentorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
 import java.net.URI;
-
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,55 +21,102 @@ import java.net.URI;
 public class DailyPlanController {
 
     private final DailyPlanService dailyPlanService;
-    private final UserService menteeService;
+    private final MentorService mentorService;
+    private final MenteeService menteeService;
 
-    // REST 규칙과 프론트 편의성 사이의 타협
+    // ===== 멘티용 기본 기능 =====
+
+    /**
+     * POST /dailyPlan - 멘티: 자신의 일정 생성 또는 조회
+     */
     @PostMapping
-    public ResponseEntity<DailyPlanCreateRes> findOrCreate(@AuthenticationPrincipal Jwt jwt,
-                                                           @RequestBody DailyPlanCreateReq req) {
-        // 다형성
-        Long menteeId = menteeService.accountToUser(jwt.getSubject());
-        // 도메인 경계분리
-        DailyPlanCreateRes res = dailyPlanService.findOrCreate(req, menteeId);
+    @PreAuthorize("hasRole('MENTEE')")
+    public ResponseEntity<DailyPlanCreateRes> findOrCreate(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody DailyPlanCreateReq req) {
 
-        if (res.isCreated()) {
-            // 새로 생성 → 201 Created + Location 헤더
-            return ResponseEntity.created(URI.create("/dailyPlan/%d".formatted(res.getDailyPlanId())))
-                    .body(res);
-        } else {
-            // 기존 리소스 조회 → 200 OK
-            return ResponseEntity.ok(res);
-        }
+        Long menteeId = menteeService.accountToUser(jwt.getSubject());
+        return createDailyPlanResponse(dailyPlanService.findOrCreate(req, menteeId));
     }
 
     /**
-     * 멘토가 특정 멘티의 DailyPlan을 생성/조회하는 엔드포인트.
-     * - path 로 멘티 ID를 직접 전달
-     * - 기존 findOrCreate 와 동일하게, 이미 있으면 조회, 없으면 생성
+     * PUT /dailyPlan/{dailyPlanId}/comment - 멘티: 일정 코멘트 수정
      */
-    @PreAuthorize("hasRole('MENTOR')")
-    @PostMapping("/mentees/{menteeId}")
-    public ResponseEntity<DailyPlanCreateRes> findOrCreateForMentee(@PathVariable Long menteeId,
-                                                                    @RequestBody DailyPlanCreateReq req) {
-        DailyPlanCreateRes res = dailyPlanService.findOrCreate(req, menteeId);
+    @PutMapping("/{dailyPlanId}/comment")
+    @PreAuthorize("hasRole('MENTEE')")
+    public ResponseEntity<DailyCommentRes> updateComment(
+            @PathVariable Long dailyPlanId,
+            @RequestBody DailyCommentReq req,
+            @AuthenticationPrincipal Jwt jwt) {
 
+        Long menteeId = menteeService.accountToUser(jwt.getSubject());
+        DailyCommentRes res = dailyPlanService.updateComment(req, menteeId, dailyPlanId);
+        return ResponseEntity.ok(res);
+    }
+
+    /**
+     * GET /dailyPlan - 멘티: 날짜 범위 일정 조회
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('MENTEE')")
+    public ResponseEntity<List<?>> getDailyPlans(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long menteeId = menteeService.accountToUser(jwt.getSubject());
+        return ResponseEntity.ok(dailyPlanService.findByDateRange(menteeId, startDate, endDate));
+    }
+
+    /**
+     * GET /dailyPlan/today - 멘티: 오늘 일정 조회
+     */
+    @GetMapping("/today")
+    @PreAuthorize("hasRole('MENTEE')")
+    public ResponseEntity<?> getTodayPlan(@AuthenticationPrincipal Jwt jwt) {
+        Long menteeId = menteeService.accountToUser(jwt.getSubject());
+        List<?> res = dailyPlanService.findByDateRange(menteeId, LocalDate.now(), LocalDate.now());
+
+        return res.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(res.get(0));
+    }
+
+
+    // ===== 멘토용 기능 =====
+
+    /**
+     * POST /dailyPlan/mentees/{menteeId} - 멘토: 특정 멘티의 일정 생성/조회
+     */
+    @PostMapping("/mentees/{menteeId}")
+    @PreAuthorize("hasRole('MENTOR')")
+    public ResponseEntity<DailyPlanCreateRes> findOrCreateForMentee(
+            @PathVariable Long menteeId,
+            @RequestBody DailyPlanCreateReq req) {
+
+        return createDailyPlanResponse(dailyPlanService.findOrCreate(req, menteeId));
+    }
+
+    /**
+     * GET /dailyPlan/mentees/{menteeId} - 멘토: 특정 멘티의 날짜 범위 일정 조회
+     */
+    @GetMapping("/mentees/{menteeId}")
+    @PreAuthorize("hasRole('MENTOR')")
+    public ResponseEntity<List<?>> getDailyPlansForMentee(
+            @PathVariable Long menteeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        return ResponseEntity.ok(dailyPlanService.findByDateRange(menteeId, startDate, endDate));
+    }
+
+    /**
+     * DailyPlanCreateRes에 따라 적절한 응답 반환
+     */
+    private ResponseEntity<DailyPlanCreateRes> createDailyPlanResponse(DailyPlanCreateRes res) {
         if (res.isCreated()) {
             return ResponseEntity.created(URI.create("/dailyPlan/%d".formatted(res.getDailyPlanId())))
                     .body(res);
         } else {
             return ResponseEntity.ok(res);
         }
-    }
-
-    // DailyPlan 리소스에 대한 수정
-    @PutMapping("/{dailyPlanId}/comment")
-    public ResponseEntity<DailyCommentRes> updateComment(@PathVariable Long dailyPlanId,
-                                                         @RequestBody DailyCommentReq req,
-                                                         @AuthenticationPrincipal Jwt jwt) {
-
-        Long menteeId = menteeService.accountToUser(jwt.getSubject());
-        // 즉시 갱신 용도, ID 기준으로 추가 GET 호출 없이 화면에 반영
-        DailyCommentRes res = dailyPlanService.updateComment(req, menteeId, dailyPlanId);
-        return ResponseEntity.ok(res);
     }
 }
