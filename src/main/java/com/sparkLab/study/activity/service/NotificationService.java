@@ -37,6 +37,7 @@ public class NotificationService {
     private static final String TYPE_MENTOR_ASSIGNMENT_MISSED = "MENTOR_ASSIGNMENT_MISSED";
     private static final String TYPE_MENTEE_WARNING = "MENTEE_WARNING";
     private static final String TYPE_MENTEE_DANGER = "MENTEE_DANGER";
+    private static final String TYPE_MENTEE_QUESTION_ANSWERED = "MENTEE_QUESTION_ANSWERED";
 
     private static final NotificationLinkType LINK_TODO = NotificationLinkType.TODO;
     private static final NotificationLinkType LINK_ASSIGNMENT = NotificationLinkType.ASSIGNMENT;
@@ -61,6 +62,8 @@ public class NotificationService {
             "⚠️ %s 멘티의 과제 미제출이 2회 누적되어 등급이 Warning으로 변경되었어요.";
     private static final String TITLE_MENTEE_DANGER =
             "🚨 %s 멘티의 과제 미제출이 3회 누적되어 등급이 Danger로 변경되었어요.";
+    private static final String TITLE_MENTEE_QUESTION_ANSWERED =
+            "💬 질문에 답변이 왔어요.\n지금 바로 확인해보세요!";
 
     private final NotificationRepository notificationRepository;
     private final AssignmentRepository assignmentRepository;
@@ -149,6 +152,20 @@ public class NotificationService {
                 recipient,
                 TYPE_MENTOR_QUESTION_CREATED,
                 formatMenteeTitle(TITLE_MENTOR_QUESTION_CREATED, mentee),
+                LINK_QUESTION,
+                qnaId
+        );
+    }
+
+    @Transactional
+    public void notifyMenteeQuestionAnswered(Mentee mentee, Long qnaId) {
+        if (mentee == null || mentee.getAccount() == null) {
+            return;
+        }
+        createNotification(
+                mentee.getAccount(),
+                TYPE_MENTEE_QUESTION_ANSWERED,
+                TITLE_MENTEE_QUESTION_ANSWERED,
                 LINK_QUESTION,
                 qnaId
         );
