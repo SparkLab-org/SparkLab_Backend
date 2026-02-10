@@ -1,8 +1,8 @@
 package com.sparkLab.study.user.entity;
 
+import com.sparkLab.study.planner.entity.ProgressStatics;
 import com.sparkLab.study.user.constant.ActiveLevel;
 import com.sparkLab.study.task.entity.Feedback;
-import com.sparkLab.study.acheivement.entity.ProgressStatics;
 import com.sparkLab.study.planner.entity.TodoItem;
 import com.sparkLab.study.security.auth.entity.Account;
 import jakarta.persistence.*;

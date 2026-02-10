@@ -1,15 +1,17 @@
-package com.sparkLab.study.acheivement.entity;
+package com.sparkLab.study.planner.entity;
 
-import com.sparkLab.study.user.entity.Mentee;
 import com.sparkLab.study.common.constant.Subject;
+import com.sparkLab.study.user.entity.Mentee;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "progressStatics")
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProgressStatics {
 
@@ -21,6 +23,7 @@ public class ProgressStatics {
     @JoinColumn(name = "menteeId", nullable = false)
     private Mentee mentee;
 
+    private LocalDate planDate;
     private Subject subject;
     private int completedCount;   // 완료한 과제 수
     private int totalCount;       // 총 과제 수

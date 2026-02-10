@@ -171,7 +171,7 @@ public class FeedbackService {
 
     @Transactional(readOnly = true)
     public List<TodoFeedbackStatusResponse> getTodoStatus(Long menteeId, LocalDate planDate) {
-        List<TodoItem> todos = todoItemRepository.findByDailyPlan_Mentee_MenteeIdAndDailyPlan_PlanDateOrderByCreateTimeAsc(menteeId, planDate);
+        List<TodoItem> todos = todoItemRepository.findTodoItemsWithRelations(menteeId, planDate);
         return todos.stream()
                 .map(todo -> TodoFeedbackStatusResponse.builder()
                         .todoItemId(todo.getTodoItemId())
