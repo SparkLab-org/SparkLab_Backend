@@ -47,6 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/signout").authenticated()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/error").permitAll()
                         .requestMatchers("/dailyPlan", "/dailyPlan/**").authenticated()
+                        .requestMatchers("/mypage/mentee").hasRole("MENTEE")
+                        .requestMatchers("/mypage/mentor").hasRole("MENTOR")
                         .requestMatchers("/assignments/**", "notifications").hasAnyRole("MENTOR","MENTEE")
                         .anyRequest().permitAll()
                 )
