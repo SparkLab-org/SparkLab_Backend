@@ -27,3 +27,6 @@ spring:
 
 app:
   upload-dir: uploads
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
