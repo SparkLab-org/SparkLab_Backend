@@ -17,13 +17,4 @@ public interface MenteeRepository extends JpaRepository<Mentee, Long> {
 
     List<Mentee> findByMentor_MentorId(Long mentorId);
 
-
-    @Query("""
-        SELECT COUNT(t), 
-               SUM(CASE WHEN t.completedAt IS NOT NULL THEN 1 ELSE 0 END)
-        FROM TodoItem t
-        WHERE t.mentee.menteeId = :menteeId
-    """)
-    Object[] todoStats(@Param("menteeId") Long menteeId);
-
 }

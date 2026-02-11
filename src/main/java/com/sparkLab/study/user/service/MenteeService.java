@@ -4,13 +4,13 @@ import com.sparkLab.study.common.service.UserService;
 import com.sparkLab.study.planner.exception.PlannerResourceNotFoundException;
 import com.sparkLab.study.user.dto.MenteeActiveLevelResponse;
 import com.sparkLab.study.user.dto.MenteeActiveLevelUpdateRequest;
+import com.sparkLab.study.user.dto.MenteeRes;
 import com.sparkLab.study.user.dto.MenteeSummaryResponse;
 import com.sparkLab.study.user.entity.Mentee;
-import com.sparkLab.study.user.entity.Mentor;
 import com.sparkLab.study.user.exception.UserNotFoundException;
 import com.sparkLab.study.user.repository.MenteeRepository;
-import com.sparkLab.study.user.repository.MentorRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +22,8 @@ import java.util.List;
 public class MenteeService implements UserService{
 
     private final MenteeRepository menteeRepository;
-    private final MentorRepository mentorRepository;
+    private final ModelMapper modelMapper;
+
 
     @Cacheable(
             cacheNames = "accountToMentee",
@@ -50,6 +51,7 @@ public class MenteeService implements UserService{
                 .build();
     }
 
+
     @Transactional(readOnly = true)
     public List<MenteeSummaryResponse> listMenteesByMentorAccount(Long mentorId) {
 
@@ -61,4 +63,20 @@ public class MenteeService implements UserService{
                         .build())
                 .toList();
     }
+
+
+    @Transactional(readOnly = true)
+    public MenteeRes getMentee(String accountId) {
+
+        Mentee mentee = menteeRepository.findByAccount_AccountId(accountId)
+                .orElseThrow(UserNotFoundException::new);
+
+        MenteeRes res = modelMapper.map(mentee, MenteeRes.class);
+
+        if (mentee.getMentor() != null) {
+            res.setMentorId(mentee.getMentor().getMentorId());
+        }
+        return res;
+    }
+
 }

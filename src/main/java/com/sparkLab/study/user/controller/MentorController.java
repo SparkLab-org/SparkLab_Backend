@@ -1,8 +1,6 @@
 package com.sparkLab.study.user.controller;
 
-import com.sparkLab.study.user.dto.MenteeActiveLevelResponse;
-import com.sparkLab.study.user.dto.MenteeActiveLevelUpdateRequest;
-import com.sparkLab.study.user.dto.MenteeSummaryResponse;
+import com.sparkLab.study.user.dto.*;
 import com.sparkLab.study.user.service.MenteeService;
 import com.sparkLab.study.user.service.MentorService;
 import jakarta.validation.Valid;
@@ -22,15 +20,9 @@ import java.util.List;
 public class MentorController {
 
     private final MentorService mentorService;
-    private final MenteeService menteeService;
 
-
-    @PreAuthorize("hasRole('MENTOR')")
-    @GetMapping("/me/mentees")
-    public ResponseEntity<List<MenteeSummaryResponse>> listMenteesByMentor(@AuthenticationPrincipal Jwt jwt) {
-        Long mentorId = mentorService.accountToUser(jwt.getSubject());
-        List<MenteeSummaryResponse> response = menteeService.listMenteesByMentorAccount(mentorId);
-        return ResponseEntity.ok(response);
+    @GetMapping("/me")
+    public MentorRes getMentor(@AuthenticationPrincipal Jwt jwt) {
+        return mentorService.getMentor(jwt.getSubject());
     }
-
 }

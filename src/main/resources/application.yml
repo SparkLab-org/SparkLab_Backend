@@ -23,10 +23,10 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/.well-known/jwks.json
+          issuer-uri: ${JWT_ISSUER_URI}
 
 app:
-  upload-dir: uploads
+  upload-dir: ${UPLOAD_DIR}
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}

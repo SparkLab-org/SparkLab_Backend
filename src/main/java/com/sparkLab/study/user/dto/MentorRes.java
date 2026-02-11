@@ -4,14 +4,15 @@ import com.sparkLab.study.common.constant.Subject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
-public class MentorMyPageRes {
+public class MentorRes {
 
     private Long mentorId;
-    private String accountId;
     private Subject subject;
-
+    List<Long> menteeIds;
     private int menteeCount;
 }
 
