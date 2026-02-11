@@ -25,15 +25,24 @@ public class AssignmentController {
     private final MenteeService menteeService;
 
     /**
-     * 멘토: 과제 목록 조회 (멘티별로 구분)
-     * - menteeId 없음: 전체 멘티의 과제를 멘티별로 묶어서 반환
-     * - menteeId 있음: 해당 멘티의 과제만 1개 그룹으로 반환
+     * 과제 목록 조회 (멘티별로 구분)
+     * - 멘토: menteeId 없음 → 전체 멘티 과제, menteeId 있음 → 해당 멘티만
+     * - 멘티: 자기 과제만 조회 (menteeId 파라미터 무시)
      */
-    @PreAuthorize("hasRole('MENTOR')")
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @GetMapping
     public List<MenteeAssignmentsResponse> list(
             @RequestParam(required = false) Long menteeId,
             @AuthenticationPrincipal Jwt jwt) {
+        List<String> rolesClaim = jwt.getClaimAsStringList("roles");
+        String role = (rolesClaim != null && !rolesClaim.isEmpty()) ? rolesClaim.get(0) : "";
+        if (role != null && role.startsWith("ROLE_")) {
+            role = role.substring(5);
+        }
+        if (AccountRole.MENTEE.name().equals(role)) {
+            Long currentMenteeId = menteeService.accountToUser(jwt.getSubject());
+            return assignmentService.listByMenteeAsGroup(currentMenteeId);
+        }
         Long mentorId = mentorService.accountToUser(jwt.getSubject());
         if (menteeId != null) {
             return assignmentService.listByMenteeForMentorAsGroup(menteeId, mentorId);
