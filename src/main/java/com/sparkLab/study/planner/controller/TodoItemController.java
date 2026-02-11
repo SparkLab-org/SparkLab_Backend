@@ -4,18 +4,23 @@ import com.sparkLab.study.planner.service.TodoItemService;
 import com.sparkLab.study.planner.dto.todo.MenteeTodosResponse;
 import com.sparkLab.study.planner.dto.todo.TodoItemCreateRequest;
 import com.sparkLab.study.planner.dto.todo.TodoItemResponse;
+import com.sparkLab.study.common.constant.Subject;
 import com.sparkLab.study.planner.dto.todo.TodoItemUpdateRequest;
 import com.sparkLab.study.security.auth.constant.AccountRole;
 import com.sparkLab.study.user.service.MentorService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -91,13 +96,45 @@ public class TodoItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    // 고정 할일 배정
+    // 고정 할일 배정 (JSON)
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
-    @PostMapping("/fixed")
+    @PostMapping(value = "/fixed", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TodoItemResponse> createFixed(
             @RequestBody @Valid TodoItemCreateRequest request) {
         TodoItemResponse created = todoItemService.createFixed(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    // 고정 할일 배정 + PDF 첨부 (멘토가 멘티 todo 추가 시 자료 첨부)
+    @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
+    @PostMapping(value = "/fixed", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<TodoItemResponse> createFixedWithFile(
+            @RequestParam @NotNull Long plannerId,
+            @RequestParam @NotBlank String title,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate targetDate,
+            @RequestParam(required = false) String subject,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer plannedMinutes,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+        TodoItemCreateRequest request = TodoItemCreateRequest.builder()
+                .plannerId(plannerId)
+                .title(title)
+                .targetDate(targetDate)
+                .subject(parseSubject(subject))
+                .type(type)
+                .plannedMinutes(plannedMinutes)
+                .build();
+        TodoItemResponse created = todoItemService.createFixedWithFile(request, file);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    private Subject parseSubject(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return Subject.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     // 할일 수정 (고정 할일이면 403)

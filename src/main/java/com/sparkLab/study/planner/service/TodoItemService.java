@@ -17,10 +17,19 @@ import com.sparkLab.study.task.repository.AssignmentRepository;
 import com.sparkLab.study.user.entity.Mentee;
 import com.sparkLab.study.user.repository.MenteeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDate;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +45,9 @@ public class TodoItemService {
     private final AssignmentRepository assignmentRepository;
     private final MenteeRepository menteeRepository;
 
+    @Value("${app.upload-dir:uploads}")
+    private String uploadDir;
+
     // 할일 생성
     @Transactional
     public TodoItemResponse create(TodoItemCreateRequest request) {
@@ -46,6 +58,51 @@ public class TodoItemService {
     @Transactional
     public TodoItemResponse createFixed(TodoItemCreateRequest request) {
         return createTodo(request, true);
+    }
+
+    // 고정 할일 생성 + PDF 첨부 (타입 ASSIGNMENT 시 materialFileUrl 저장)
+    @Transactional
+    public TodoItemResponse createFixedWithFile(TodoItemCreateRequest request, MultipartFile file) {
+        TodoItemResponse response = createTodo(request, true);
+        if (file != null && !file.isEmpty() && "ASSIGNMENT".equalsIgnoreCase(request.getType()) && response.getAssignmentId() != null) {
+            saveMaterialFile(response.getAssignmentId(), file);
+            return getOne(response.getTodoItemId());
+        }
+        return response;
+    }
+
+    private void saveMaterialFile(Long assignmentId, MultipartFile file) {
+        String contentType = file.getContentType();
+        String ext = getExtension(file.getOriginalFilename());
+        if (!"application/pdf".equals(contentType) && !"pdf".equals(ext)) {
+            throw new IllegalArgumentException("PDF 파일만 업로드할 수 있습니다.");
+        }
+        Path uploadPath = Paths.get(uploadDir, "assignments", String.valueOf(assignmentId), "material");
+        try {
+            Files.createDirectories(uploadPath);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("업로드 경로 생성에 실패했습니다.");
+        }
+        String filename = "material_" + UUID.randomUUID() + ".pdf";
+        Path targetPath = uploadPath.resolve(filename).normalize();
+        try {
+            Files.copy(file.getInputStream(), targetPath);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("파일 저장에 실패했습니다.");
+        }
+        String fileUrl = "/uploads/assignments/" + assignmentId + "/material/" + filename;
+        assignmentRepository.findById(assignmentId).ifPresent(a -> {
+            a.setMaterialFileUrl(fileUrl);
+            a.setMaterialType("PDF");
+            assignmentRepository.save(a);
+        });
+    }
+
+    private String getExtension(String filename) {
+        if (!StringUtils.hasText(filename)) return "";
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot < 0 || lastDot == filename.length() - 1) return "";
+        return filename.substring(lastDot + 1).toLowerCase(Locale.ROOT);
     }
 
     // 플래너 기준 할일 목록
@@ -211,14 +268,18 @@ public class TodoItemService {
 
     private TodoItemResponse toResponse(TodoItem todo) {
         Long assignmentId = null;
+        String materialFileUrl = null;
         if (todo.getAssignments() != null && !todo.getAssignments().isEmpty()) {
-            assignmentId = todo.getAssignments().get(0).getAssignmentId();
+            Assignment a = todo.getAssignments().get(0);
+            assignmentId = a.getAssignmentId();
+            materialFileUrl = a.getMaterialFileUrl();
         }
 
         return TodoItemResponse.builder()
                 .todoItemId(todo.getTodoItemId())
                 .plannerId(todo.getDailyPlan().getDailyPlanId())
                 .assignmentId(assignmentId)
+                .materialFileUrl(materialFileUrl)
                 .targetDate(todo.getTargetDate())
                 .title(todo.getTitle())
                 .subject(todo.getSubject())
