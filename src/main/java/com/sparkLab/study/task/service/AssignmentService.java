@@ -51,6 +51,26 @@ public class AssignmentService {
     }
 
     /**
+     * 멘티: 본인 과제만 1개 그룹으로 조회 (제출/미제출 상태 포함)
+     */
+    @Transactional(readOnly = true)
+    public List<MenteeAssignmentsResponse> listByMenteeAsGroup(Long menteeId) {
+        Mentee mentee = menteeRepository.findById(menteeId)
+                .orElseThrow(() -> new PlannerResourceNotFoundException("멘티를 찾을 수 없습니다. menteeId=" + menteeId));
+        List<Assignment> assignments = assignmentRepository
+                .findByTodoItem_Mentee_MenteeIdOrderByTodoItem_TargetDateDescCreateTimeDesc(menteeId);
+        List<AssignmentResponse> assignmentResponses = assignments.stream()
+                .map(a -> toAssignmentResponse(a, menteeId))
+                .collect(Collectors.toList());
+        return List.of(MenteeAssignmentsResponse.builder()
+                .menteeId(mentee.getMenteeId())
+                .accountId(mentee.getAccount() != null ? mentee.getAccount().getAccountId() : null)
+                .activeLevel(mentee.getActiveLevel())
+                .assignments(assignmentResponses)
+                .build());
+    }
+
+    /**
      * 멘토: 특정 멘티의 과제를 1개 그룹으로 조회 (제출/미제출 상태 포함)
      */
     @Transactional(readOnly = true)
