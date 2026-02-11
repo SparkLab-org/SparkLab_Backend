@@ -16,6 +16,8 @@ public class TodoItemResponse {
     private Long todoItemId;
     private Long plannerId;
     private Long assignmentId;
+    /** 과제 자료 PDF URL (type=ASSIGNMENT일 때) */
+    private String materialFileUrl;
     private LocalDate targetDate;
     private String title;
     private Subject subject;
