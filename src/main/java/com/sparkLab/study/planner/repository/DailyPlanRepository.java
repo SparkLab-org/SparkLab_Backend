@@ -5,22 +5,15 @@ import com.sparkLab.study.user.entity.Mentee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
-public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long> {
+
+public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long>{
 
     @Query("SELECT d.dailyPlanId FROM DailyPlan d WHERE d.mentee.menteeId = :menteeId AND d.planDate = :planDate")
     List<Long> findIdByMenteeIdAndPlanDate(@Param("menteeId") Long menteeId,
                                           @Param("planDate") LocalDate planDate);
-
-    List<DailyPlan> findByMentee_MenteeIdAndPlanDate(Long menteeMenteeId, LocalDate planDate);
-
-    List<DailyPlan> findByMentee_MenteeIdAndPlanDateBetweenOrderByPlanDateAsc(Long menteeId,
-                                                                              LocalDate startDate,
-                                                                              LocalDate endDate);
 
     // ------------------ 배치용 summary ------------------
     @Query("""
@@ -37,7 +30,6 @@ public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long> {
     List<Object[]> findDailyTodoSummary(@Param("menteeId") Long menteeId,
                                         @Param("startDate") LocalDate startDate,
                                         @Param("endDate") LocalDate endDate);
-
 
     // 모든 멘티 조회 (배치용)
     @Query("SELECT DISTINCT dp.mentee FROM DailyPlan dp")

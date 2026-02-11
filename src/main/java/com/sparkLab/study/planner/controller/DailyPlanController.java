@@ -59,7 +59,7 @@ public class DailyPlanController {
      */
     @GetMapping
     @PreAuthorize("hasRole('MENTEE')")
-    public ResponseEntity<List<?>> getDailyPlans(
+    public ResponseEntity<List<DailyPlanRes>> getDailyPlans(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @AuthenticationPrincipal Jwt jwt) {

@@ -4,6 +4,7 @@ import com.sparkLab.study.common.exception.NotOwnerException;
 import com.sparkLab.study.common.exception.ParentResourceNotFoundException;
 import com.sparkLab.study.planner.dto.dailyPlan.DailyPlanSummaryRes;
 import com.sparkLab.study.planner.dto.dailyPlan.*;
+import com.sparkLab.study.planner.repository.DailyPlanRepositoryCustom;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import com.sparkLab.study.planner.entity.DailyPlan;
@@ -19,7 +20,9 @@ import java.util.stream.Collectors;
 public class DailyPlanService {
 
     private final DailyPlanRepository dailyPlanRepository;
+    private final DailyPlanRepositoryCustom dailyPlanRepositoryCustom;
     private final ModelMapper modelMapper;
+    private final ModelMapper dailyPlanMapper;
 
     // 요청 응답 캡슐화 - 확장성 고려
     @Transactional
@@ -29,7 +32,7 @@ public class DailyPlanService {
         // 기존 조회
         if (!entityIds.isEmpty()) {
             return DailyPlanCreateRes.builder()
-                    .dailyPlanId(entityIds.get(0))
+                    .dailyPlanId(entityIds.getFirst())
                     .build();
         }
         // 새로 생성
@@ -42,6 +45,7 @@ public class DailyPlanService {
                 .created(true)
                 .build();
     }
+
 
     // 선언적 접근 제어, 즉시 권한 검증 예외처리
     @Transactional
@@ -67,9 +71,14 @@ public class DailyPlanService {
 
 
     @Transactional(readOnly = true)
-    public List<DailyPlan> findByDateRange(Long menteeId, LocalDate startDate, LocalDate endDate) {
-        return dailyPlanRepository.findByMentee_MenteeIdAndPlanDateBetweenOrderByPlanDateAsc(menteeId, startDate, endDate);
+    public List<DailyPlanRes> findByDateRange(Long menteeId, LocalDate startDate, LocalDate endDate) {
+
+        List<DailyPlan> dailyPlans = dailyPlanRepositoryCustom.findByMenteeAndPlanDate(menteeId, startDate, endDate);
+        return dailyPlans.stream()
+                .map(dailyPlan -> dailyPlanMapper.map(dailyPlan, DailyPlanRes.class))
+                .toList();
     }
+
 
     @Transactional(readOnly = true)
     public List<DailyPlanSummaryRes> getDailySummary(Long menteeId, LocalDate startDate, LocalDate endDate) {

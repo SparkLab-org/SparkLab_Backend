@@ -32,4 +32,8 @@ public class Routine extends BaseTime {
     @Column(name = "isActive", nullable = false)
     private Boolean isActive = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dailyPlanId", nullable = false)
+    private DailyPlan dailyPlan;
+
 }

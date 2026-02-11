@@ -9,11 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface DailyPlanSummaryRepository extends JpaRepository<ProgressStatics, Long> {
-
-    Optional<ProgressStatics> findByMenteeAndPlanDate(Mentee mentee, LocalDate planDate);
-
-    List<ProgressStatics> findByMenteeAndPlanDateBetweenOrderByPlanDateAsc(Mentee mentee, LocalDate start, LocalDate end);
+public interface DailyPlanSummaryRepository extends JpaRepository<ProgressStatics, Long>{
 
     @Modifying
     @Query("""
