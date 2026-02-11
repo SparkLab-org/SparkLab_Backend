@@ -61,6 +61,20 @@ public class TodoItemController {
         throw new IllegalArgumentException("plannerId 또는 planDate 중 하나는 필수입니다.");
     }
 
+    /**
+     * 멘토: 멘티별·날짜별 할일 조회 (별도 엔드포인트)
+     * GET /todos/mentor?menteeId=1&planDate=2026-02-10
+     */
+    @PreAuthorize("hasRole('MENTOR')")
+    @GetMapping("/mentor")
+    public List<MenteeTodosResponse> listByMentor(
+            @RequestParam(required = false) Long menteeId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate planDate,
+            @AuthenticationPrincipal Jwt jwt) {
+        Long mentorId = mentorService.accountToUser(jwt.getSubject());
+        return todoItemService.listByMentorGroupedByMentee(mentorId, planDate, menteeId);
+    }
+
     //할일 상세 조회
     @PreAuthorize("hasAnyRole('MENTOR','MENTEE')")
     @GetMapping("/{todoItemId}")
