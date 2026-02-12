@@ -60,11 +60,11 @@ public class TodoItemService {
         return createTodo(request, true);
     }
 
-    // 고정 할일 생성 + PDF 첨부 (타입 ASSIGNMENT 시 materialFileUrl 저장)
+    // 고정 할일 생성 + PDF 첨부 (STUDY 제외 과제 시 materialFileUrl 저장)
     @Transactional
     public TodoItemResponse createFixedWithFile(TodoItemCreateRequest request, MultipartFile file) {
         TodoItemResponse response = createTodo(request, true);
-        if (file != null && !file.isEmpty() && "ASSIGNMENT".equalsIgnoreCase(request.getType()) && response.getAssignmentId() != null) {
+        if (file != null && !file.isEmpty() && response.getAssignmentId() != null) {
             saveMaterialFile(response.getAssignmentId(), file);
             return getOne(response.getTodoItemId());
         }
@@ -240,14 +240,16 @@ public class TodoItemService {
         todo = todoItemRepository.save(todo);
         notificationService.notifyNewTodo(todo);
 
-        // 타입이 ASSIGNMENT인 Todo는 Assignment를 함께 생성
-        if ("ASSIGNMENT".equalsIgnoreCase(todo.getType())) {
+        // STUDY가 아닌 Todo는 Assignment를 함께 생성하고 type을 ASSIGNMENT로 저장
+        if (!"STUDY".equalsIgnoreCase(todo.getType())) {
             Assignment assignment = Assignment.builder()
                     .todoItem(todo)
                     .mentor(todo.getMentor())
                     .materialTitle(todo.getTitle())
                     .build();
             assignmentRepository.save(assignment);
+            todo.setType("ASSIGNMENT");
+            todo = todoItemRepository.save(todo);
         }
 
         return toResponse(todo);
