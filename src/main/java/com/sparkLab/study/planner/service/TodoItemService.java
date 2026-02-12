@@ -25,14 +25,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.LocalDate;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -215,7 +214,7 @@ public class TodoItemService {
     }
 
     private TodoItem findTodo(Long todoItemId) {
-        return todoItemRepository.findById(todoItemId)
+        return todoItemRepository.findByIdWithAssignments(todoItemId)
                 .orElseThrow(() -> new PlannerResourceNotFoundException("할일을 찾을 수 없습니다. todoItemId=" + todoItemId));
     }
 
