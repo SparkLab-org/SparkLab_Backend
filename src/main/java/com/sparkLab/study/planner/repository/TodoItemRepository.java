@@ -7,16 +7,21 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
 
-    List<TodoItem> findByDailyPlan_dailyPlanIdOrderByCreateTimeAsc(Long plannerId);
+    @Query("SELECT t FROM TodoItem t LEFT JOIN FETCH t.assignments WHERE t.todoItemId = :todoItemId")
+    Optional<TodoItem> findByIdWithAssignments(@Param("todoItemId") Long todoItemId);
 
-    List<TodoItem> findByDailyPlan_PlanDateOrderByCreateTimeAsc(LocalDate planDate);
+    @Query("SELECT t FROM TodoItem t LEFT JOIN FETCH t.assignments WHERE t.dailyPlan.dailyPlanId = :plannerId ORDER BY t.createTime ASC")
+    List<TodoItem> findByDailyPlan_dailyPlanIdOrderByCreateTimeAsc(@Param("plannerId") Long plannerId);
 
+    @Query("SELECT DISTINCT t FROM TodoItem t LEFT JOIN FETCH t.assignments WHERE t.dailyPlan.planDate = :planDate ORDER BY t.createTime ASC")
+    List<TodoItem> findByDailyPlan_PlanDateOrderByCreateTimeAsc(@Param("planDate") LocalDate planDate);
 
     /** 멘티ID + 날짜로 할일 조회 */
-    @Query("SELECT t FROM TodoItem t JOIN t.dailyPlan d WHERE d.mentee.menteeId = :menteeId AND d.planDate = :planDate ORDER BY t.createTime ASC")
+    @Query("SELECT DISTINCT t FROM TodoItem t JOIN t.dailyPlan d LEFT JOIN FETCH t.assignments WHERE d.mentee.menteeId = :menteeId AND d.planDate = :planDate ORDER BY t.createTime ASC")
     List<TodoItem> findByDailyPlan_Mentee_MenteeIdAndDailyPlan_PlanDateOrderByCreateTimeAsc(
             @Param("menteeId") Long menteeId, @Param("planDate") LocalDate planDate);
 
@@ -24,7 +29,8 @@ public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
 
 
     /** 멘티별 할일 (날짜 필터 없이 전체) */
-    List<TodoItem> findByMentee_MenteeIdOrderByTargetDateDescCreateTimeAsc(Long menteeId);
+    @Query("SELECT DISTINCT t FROM TodoItem t LEFT JOIN FETCH t.assignments WHERE t.mentee.menteeId = :menteeId ORDER BY t.targetDate DESC, t.createTime ASC")
+    List<TodoItem> findByMentee_MenteeIdOrderByTargetDateDescCreateTimeAsc(@Param("menteeId") Long menteeId);
 
     boolean existsByTodoItemIdAndMentee_MenteeId(Long todoItemId, Long menteeId);
 
