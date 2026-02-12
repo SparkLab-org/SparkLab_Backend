@@ -270,10 +270,12 @@ public class TodoItemService {
     private TodoItemResponse toResponse(TodoItem todo) {
         Long assignmentId = null;
         String materialFileUrl = null;
+        String materialType = null;
         if (todo.getAssignments() != null && !todo.getAssignments().isEmpty()) {
             Assignment a = todo.getAssignments().get(0);
             assignmentId = a.getAssignmentId();
             materialFileUrl = a.getMaterialFileUrl();
+            materialType = a.getMaterialType();
         }
 
         return TodoItemResponse.builder()
@@ -281,6 +283,7 @@ public class TodoItemService {
                 .plannerId(todo.getDailyPlan().getDailyPlanId())
                 .assignmentId(assignmentId)
                 .materialFileUrl(materialFileUrl)
+                .materialType(materialType)
                 .targetDate(todo.getTargetDate())
                 .title(todo.getTitle())
                 .subject(todo.getSubject())
