@@ -29,4 +29,4 @@ app:
   upload-dir: uploads
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://spark-lab-frontend-kappa.vercel.app,http://localhost:3000}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
