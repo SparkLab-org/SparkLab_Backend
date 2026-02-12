@@ -16,8 +16,10 @@ public class TodoItemResponse {
     private Long todoItemId;
     private Long plannerId;
     private Long assignmentId;
-    /** 과제 자료 PDF URL (type=ASSIGNMENT일 때) */
+    /** 멘토가 첨부한 자료 파일 URL (다운로드: {API_BASE}{materialFileUrl}) */
     private String materialFileUrl;
+    /** 첨부 자료 타입 (예: PDF) */
+    private String materialType;
     private LocalDate targetDate;
     private String title;
     private Subject subject;
